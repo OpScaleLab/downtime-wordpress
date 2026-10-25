@@ -49,7 +49,7 @@ class Downtime_API {
 		if ( $authenticated ) {
 			$key = self::get_key();
 			if ( '' === $key ) {
-				return new WP_Error( 'downtime_not_connected', __( 'This site is not connected to DownTime.', 'downtime' ) );
+				return new WP_Error( 'downtime_not_connected', __( 'This site is not connected to DownTime.', 'downtime-uptime-monitoring' ) );
 			}
 			$headers['X-API-Key'] = $key;
 		}
@@ -83,7 +83,7 @@ class Downtime_API {
 		if ( is_array( $result['body'] ) && ! empty( $result['body']['error'] ) ) {
 			return sprintf( '%s (HTTP %d)', $result['body']['error'], $result['code'] );
 		}
-		return sprintf( __( 'Unexpected response from DownTime (HTTP %d).', 'downtime' ), $result['code'] );
+		return sprintf( __( 'Unexpected response from DownTime (HTTP %d).', 'downtime-uptime-monitoring' ), $result['code'] );
 	}
 
 	public static function ok( $result ) {

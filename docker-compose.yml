@@ -8,7 +8,7 @@ services:
       MARIADB_PASSWORD: wp
       MARIADB_RANDOM_ROOT_PASSWORD: "1"
   wordpress:
-    image: wordpress:6-php8.2-apache
+    image: wordpress:php8.3-apache
     depends_on: [db]
     ports: ["8088:80"]
     environment:
@@ -17,4 +17,4 @@ services:
       WORDPRESS_DB_PASSWORD: wp
       WORDPRESS_DB_NAME: wp
     volumes:
-      - ./:/var/www/html/wp-content/plugins/downtime:ro
+      - ./:/var/www/html/wp-content/plugins/downtime-uptime-monitoring:ro
