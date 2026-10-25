@@ -157,7 +157,8 @@ class Downtime_Admin {
 
 	public static function handle_status_page() {
 		self::require_admin( 'downtime_status_page' );
-		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( wp_unslash( $_POST['slug'] ) ) : '';
+		// Nonce checked by require_admin() above.
+		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( sanitize_text_field( wp_unslash( $_POST['slug'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( '' === $slug ) {
 			self::done( 'error', __( 'Slug must be 1–40 lowercase letters, digits or hyphens, starting and ending with a letter or digit.', 'downtime-uptime-monitoring' ) );
 		}

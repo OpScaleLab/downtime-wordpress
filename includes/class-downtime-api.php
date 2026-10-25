@@ -83,6 +83,7 @@ class Downtime_API {
 		if ( is_array( $result['body'] ) && ! empty( $result['body']['error'] ) ) {
 			return sprintf( '%s (HTTP %d)', $result['body']['error'], $result['code'] );
 		}
+		/* translators: %d: HTTP status code. */
 		return sprintf( __( 'Unexpected response from DownTime (HTTP %d).', 'downtime-uptime-monitoring' ), $result['code'] );
 	}
 
