@@ -7,7 +7,7 @@
 	"icon": "heart",
 	"description": "Show your DownTime status page, status badge or uptime badge.",
 	"keywords": [ "uptime", "status", "monitoring" ],
-	"textdomain": "downtime",
+	"textdomain": "downtime-uptime-monitoring",
 	"attributes": {
 		"mode": { "type": "string", "default": "page", "enum": [ "page", "badge", "uptime" ] },
 		"slug": { "type": "string", "default": "" },

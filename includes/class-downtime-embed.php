@@ -40,7 +40,7 @@ class Downtime_Embed {
 
 	private static function missing() {
 		if ( current_user_can( 'manage_options' ) ) {
-			return '<em>' . esc_html__( 'DownTime: no status page set. Create one under Settings → DownTime, or pass slug="…".', 'downtime' ) . '</em>';
+			return '<em>' . esc_html__( 'DownTime: no status page set. Create one under Settings → DownTime, or pass slug="…".', 'downtime-uptime-monitoring' ) . '</em>';
 		}
 		return '';
 	}
@@ -65,7 +65,7 @@ class Downtime_Embed {
 			'<a href="%s" target="_blank" rel="noopener"><img src="%s" alt="%s" style="vertical-align:middle"></a>',
 			esc_url( $base . '/status/' . $slug ),
 			esc_url( $base . '/api/status/' . $slug . '/' . $file ),
-			esc_attr( 'uptime' === $atts['type'] ? __( 'Uptime', 'downtime' ) : __( 'Service status', 'downtime' ) )
+			esc_attr( 'uptime' === $atts['type'] ? __( 'Uptime', 'downtime-uptime-monitoring' ) : __( 'Service status', 'downtime-uptime-monitoring' ) )
 		);
 	}
 
@@ -89,7 +89,7 @@ class Downtime_Embed {
 			'<iframe class="downtime-status" data-downtime-slug="%s" src="%s" title="%s" loading="lazy" style="width:100%%;height:%dpx;border:0;display:block"></iframe>',
 			esc_attr( $slug ),
 			esc_url( Downtime_API::base_url() . '/status/' . $slug . '?embed=1' ),
-			esc_attr__( 'Service status', 'downtime' ),
+			esc_attr__( 'Service status', 'downtime-uptime-monitoring' ),
 			$height
 		);
 	}

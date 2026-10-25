@@ -18,25 +18,25 @@
 					null,
 					el(
 						components.PanelBody,
-						{ title: __( 'DownTime', 'downtime' ) },
+						{ title: __( 'DownTime', 'downtime-uptime-monitoring' ) },
 						el( components.SelectControl, {
-							label: __( 'Show', 'downtime' ),
+							label: __( 'Show', 'downtime-uptime-monitoring' ),
 							value: a.mode,
 							options: [
-								{ label: __( 'Status page', 'downtime' ), value: 'page' },
-								{ label: __( 'Status badge', 'downtime' ), value: 'badge' },
-								{ label: __( 'Uptime badge', 'downtime' ), value: 'uptime' },
+								{ label: __( 'Status page', 'downtime-uptime-monitoring' ), value: 'page' },
+								{ label: __( 'Status badge', 'downtime-uptime-monitoring' ), value: 'badge' },
+								{ label: __( 'Uptime badge', 'downtime-uptime-monitoring' ), value: 'uptime' },
 							],
 							onChange: function ( v ) { props.setAttributes( { mode: v } ); },
 						} ),
 						el( components.TextControl, {
-							label: __( 'Status page slug', 'downtime' ),
-							help: __( 'Leave empty to use the one set under Settings → DownTime.', 'downtime' ),
+							label: __( 'Status page slug', 'downtime-uptime-monitoring' ),
+							help: __( 'Leave empty to use the one set under Settings → DownTime.', 'downtime-uptime-monitoring' ),
 							value: a.slug,
 							onChange: function ( v ) { props.setAttributes( { slug: v } ); },
 						} ),
 						a.mode === 'page' && el( components.RangeControl, {
-							label: __( 'Initial height (px)', 'downtime' ),
+							label: __( 'Initial height (px)', 'downtime-uptime-monitoring' ),
 							value: a.height,
 							min: 100,
 							max: 2000,
