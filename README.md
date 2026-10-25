@@ -27,7 +27,7 @@ Tracking: OpScaleLab/downtime#363 (epic OpScaleLab/downtime#364).
 | Status pages | `GET`/`POST /api/status-pages` | downtime#361 |
 | Badges / embed | `GET /api/status/{slug}/badge.svg`, `uptime.svg`, `/status/{slug}?embed=1` | public (embed: downtime#360) |
 
-Until downtime#362 is live, Connect has nowhere to land. For development, set a key directly:
+For development without the Connect flow, set a key directly:
 
 ```sh
 wp option update downtime_api_key <integration-scoped key> --autoload=no
@@ -41,6 +41,16 @@ docker compose up -d   # see docker-compose.yml: WordPress + MariaDB, plugin mou
 
 Then open http://localhost:8088, finish the WordPress install, and activate **DownTime Uptime Monitoring**.
 
+Before a release, run [Plugin Check](https://wordpress.org/plugins/plugin-check/) against the built ZIP (not the repo checkout) on the latest WordPress: `wp plugin check downtime-uptime-monitoring`.
+
 ## Release
 
-Not on WordPress.org yet (epic phase 3). The repo is private until then. The plugin is GPL-2.0-or-later, as WordPress.org requires.
+The WordPress.org slug and text domain are `downtime-uptime-monitoring`.
+
+1. Bump `Version` in `downtime.php`, `DOWNTIME_PLUGIN_VERSION`, and `Stable tag` plus the changelog in `readme.txt`.
+2. Tag the release: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. Build the ZIP: `bin/build-zip.sh vX.Y.Z`. It contains a single `downtime-uptime-monitoring/` folder; `.gitattributes` leaves out the dev-only files.
+4. Publish it: `gh release create vX.Y.Z downtime-uptime-monitoring.zip`.
+5. Once the plugin is on WordPress.org, copy the same tree to SVN `trunk/` and `tags/X.Y.Z/`.
+
+The plugin is GPL-2.0-or-later, as WordPress.org requires.
