@@ -4,10 +4,11 @@
  * status page setup, and copy-paste embed snippets.
  *
  * Every state-changing action is an admin-post.php form protected by a
- * WordPress nonce and the manage_options capability. The Connect callback
- * is the one exception: it arrives as a redirect from DownTime, so it is
- * protected by the `state` value instead (random, per-user, single-use,
- * 10-minute transient).
+ * WordPress nonce and the manage_options capability. Connect is the one
+ * exception: the button is a plain link to DownTime's approval page, and
+ * the callback arrives as a redirect from DownTime, so it is protected by
+ * the `state` value instead (random, per-user, single-use, 30-minute
+ * transient, minted when the settings page renders).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,7 +25,6 @@ class Downtime_Admin {
 
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
-		add_action( 'admin_post_downtime_connect', array( __CLASS__, 'handle_connect' ) );
 		add_action( 'admin_post_downtime_connect_callback', array( __CLASS__, 'handle_connect_callback' ) );
 		add_action( 'admin_post_downtime_disconnect', array( __CLASS__, 'handle_disconnect' ) );
 		add_action( 'admin_post_downtime_monitor_site', array( __CLASS__, 'handle_monitor_site' ) );
@@ -79,12 +79,18 @@ class Downtime_Admin {
 
 	// --- Connect / disconnect ----------------------------------------------
 
-	public static function handle_connect() {
-		self::require_admin( 'downtime_connect' );
+	/**
+	 * The DownTime approval URL for this site, with a fresh state. The
+	 * Connect button links straight to it rather than going through an
+	 * admin-post redirect: WordPress Playground's service worker mangles a
+	 * redirect to another host. The state check in the callback is what
+	 * ties the approval back to this admin.
+	 */
+	private static function connect_url() {
 		$state = bin2hex( random_bytes( 16 ) );
-		set_transient( self::STATE_TRANSIENT . get_current_user_id(), $state, 10 * MINUTE_IN_SECONDS );
+		set_transient( self::STATE_TRANSIENT . get_current_user_id(), $state, 30 * MINUTE_IN_SECONDS );
 
-		$url = add_query_arg(
+		return add_query_arg(
 			array(
 				'client'       => 'wordpress',
 				'site'         => rawurlencode( home_url( '/' ) ),
@@ -93,9 +99,6 @@ class Downtime_Admin {
 			),
 			Downtime_API::base_url() . '/connect'
 		);
-		// External host, so wp_redirect rather than wp_safe_redirect.
-		wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
-		exit;
 	}
 
 	public static function handle_connect_callback() {
@@ -345,7 +348,7 @@ class Downtime_Admin {
 
 		if ( ! Downtime_API::is_connected() ) {
 			echo '<p>' . esc_html__( 'Connect this site to DownTime to monitor its uptime and show a live status badge or status page. You will sign in (or create a free account) on DownTime and approve access for this site.', 'downtime-uptime-monitoring' ) . '</p>';
-			self::form( 'downtime_connect', __( 'Connect to DownTime', 'downtime-uptime-monitoring' ) );
+			echo '<p><a id="downtime-connect" class="button button-primary" href="' . esc_url( self::connect_url() ) . '">' . esc_html__( 'Connect to DownTime', 'downtime-uptime-monitoring' ) . '</a></p>';
 			echo '</div>';
 			return;
 		}
