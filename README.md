@@ -16,6 +16,7 @@ Tracking: OpScaleLab/downtime#363 (epic OpScaleLab/downtime#364).
 | `includes/class-downtime-embed.php` | `[downtime_badge]`, `[downtime_status]`, and the dynamic `downtime/status` block's render |
 | `blocks/status/` | Block metadata and editor UI (plain `wp.*` globals, no build step) |
 | `assets/embed.js` | Auto-resizes status iframes from the page's `downtime:status:resize` postMessage (DownTime origin only) |
+| `assets/admin.js` | Settings page only: opens Connect in a new tab when wp-admin is framed (WordPress Playground) |
 
 ## DownTime API contract
 
