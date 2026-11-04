@@ -18,6 +18,8 @@ class Downtime_Admin {
 
 	const PAGE              = 'downtime';
 	const OPTION_MONITOR_ID = 'downtime_site_monitor_id';
+	const OPTION_ALERT_ID   = 'downtime_site_alert_rule_id';
+	const OPTION_HB_ALERT   = 'downtime_heartbeat_alert_rule_id';
 	const STATE_TRANSIENT   = 'downtime_connect_state_';
 
 	public static function init() {
@@ -27,6 +29,10 @@ class Downtime_Admin {
 		add_action( 'admin_post_downtime_disconnect', array( __CLASS__, 'handle_disconnect' ) );
 		add_action( 'admin_post_downtime_monitor_site', array( __CLASS__, 'handle_monitor_site' ) );
 		add_action( 'admin_post_downtime_status_page', array( __CLASS__, 'handle_status_page' ) );
+		add_action( 'admin_post_downtime_use_status_page', array( __CLASS__, 'handle_use_status_page' ) );
+		add_action( 'admin_post_downtime_email_alerts', array( __CLASS__, 'handle_email_alerts' ) );
+		add_action( 'admin_post_downtime_heartbeat_on', array( __CLASS__, 'handle_heartbeat_on' ) );
+		add_action( 'admin_post_downtime_heartbeat_off', array( __CLASS__, 'handle_heartbeat_off' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( DOWNTIME_PLUGIN_FILE ), array( __CLASS__, 'action_links' ) );
 	}
 
@@ -58,6 +64,7 @@ class Downtime_Admin {
 
 	/** Redirect back to the settings page with a one-shot notice. */
 	private static function done( $type, $message ) {
+		Downtime_Widget::flush();
 		set_transient( 'downtime_notice_' . get_current_user_id(), array( $type, $message ), 60 );
 		wp_safe_redirect( self::page_url() );
 		exit;
@@ -121,6 +128,9 @@ class Downtime_Admin {
 		$result = Downtime_API::revoke_self();
 		Downtime_API::clear_key();
 		delete_option( self::OPTION_MONITOR_ID );
+		delete_option( self::OPTION_ALERT_ID );
+		delete_option( self::OPTION_HB_ALERT );
+		Downtime_Heartbeat::disable();
 		if ( ! Downtime_API::ok( $result ) ) {
 			self::done( 'warning', __( 'Disconnected here, but DownTime could not revoke the key. Revoke it under Settings → Integrations on DownTime.', 'downtime-uptime-monitoring' ) );
 		}
@@ -149,8 +159,66 @@ class Downtime_Admin {
 		if ( ! Downtime_API::ok( $result ) || empty( $result['body']['id'] ) ) {
 			self::done( 'error', Downtime_API::error_message( $result ) );
 		}
-		update_option( self::OPTION_MONITOR_ID, sanitize_text_field( $result['body']['id'] ), false );
-		self::done( 'success', __( 'This site is now monitored by DownTime.', 'downtime-uptime-monitoring' ) );
+		$monitor_id = sanitize_text_field( $result['body']['id'] );
+		update_option( self::OPTION_MONITOR_ID, $monitor_id, false );
+		if ( ! self::add_email_alert( $monitor_id, self::OPTION_ALERT_ID, 2 ) ) {
+			self::done( 'warning', __( 'This site is now monitored, but email alerts could not be turned on. Try "Turn on email alerts" below.', 'downtime-uptime-monitoring' ) );
+		}
+		self::done( 'success', __( 'This site is now monitored by DownTime. You will get an email if it goes down.', 'downtime-uptime-monitoring' ) );
+	}
+
+	/** Create an email alert rule for a monitor and remember its ID. */
+	private static function add_email_alert( $monitor_id, $option, $threshold ) {
+		$name   = sprintf( '%s (WordPress)', wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		$result = Downtime_API::create_email_alert( $monitor_id, $name, $threshold );
+		if ( ! Downtime_API::ok( $result ) || empty( $result['body']['id'] ) ) {
+			return false;
+		}
+		update_option( $option, sanitize_text_field( $result['body']['id'] ), false );
+		return true;
+	}
+
+	public static function handle_email_alerts() {
+		self::require_admin( 'downtime_email_alerts' );
+		$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
+		if ( '' === $monitor_id ) {
+			self::done( 'error', __( 'Monitor this site first.', 'downtime-uptime-monitoring' ) );
+		}
+		if ( ! self::add_email_alert( $monitor_id, self::OPTION_ALERT_ID, 2 ) ) {
+			self::done( 'error', __( 'Email alerts could not be turned on. You can add them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ) );
+		}
+		self::done( 'success', __( 'Email alerts are on.', 'downtime-uptime-monitoring' ) );
+	}
+
+	// --- WP-Cron heartbeat ----------------------------------------------------
+
+	public static function handle_heartbeat_on() {
+		self::require_admin( 'downtime_heartbeat_on' );
+		$name   = get_bloginfo( 'name' );
+		$name   = ( '' !== $name ? $name : (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) ) . ' WP-Cron';
+		$result = Downtime_API::create_monitor(
+			array(
+				'name'     => $name,
+				'type'     => 'heartbeat',
+				'interval' => Downtime_Heartbeat::INTERVAL,
+			)
+		);
+		if ( ! Downtime_API::ok( $result ) || empty( $result['body']['id'] ) ) {
+			self::done( 'error', Downtime_API::error_message( $result ) );
+		}
+		$monitor_id = sanitize_text_field( $result['body']['id'] );
+		Downtime_Heartbeat::enable( $monitor_id );
+		// A heartbeat is only checked once per interval, so alert on the
+		// first miss.
+		self::add_email_alert( $monitor_id, self::OPTION_HB_ALERT, 1 );
+		self::done( 'success', __( 'WP-Cron is now watched. DownTime emails you if it stops running for more than 90 minutes.', 'downtime-uptime-monitoring' ) );
+	}
+
+	public static function handle_heartbeat_off() {
+		self::require_admin( 'downtime_heartbeat_off' );
+		Downtime_Heartbeat::disable();
+		delete_option( self::OPTION_HB_ALERT );
+		self::done( 'success', __( 'Stopped sending WP-Cron heartbeats. Pause or delete the heartbeat monitor in the DownTime dashboard, or it will report WP-Cron as down.', 'downtime-uptime-monitoring' ) );
 	}
 
 	// --- Status page ----------------------------------------------------------
@@ -166,12 +234,20 @@ class Downtime_Admin {
 			'slug'  => $slug,
 			'title' => get_bloginfo( 'name' ) . ' ' . __( 'Status', 'downtime-uptime-monitoring' ),
 		);
-		$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
-		if ( '' !== $monitor_id ) {
-			// Only this site's monitor; an empty list would publish every
-			// monitor in the org.
-			$page['monitor_ids'] = array( $monitor_id );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
+		$picked = isset( $_POST['monitor_ids'] ) ? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['monitor_ids'] ) ) : array();
+		$picked = array_values( array_filter( $picked, array( __CLASS__, 'is_uuid' ) ) );
+		if ( ! $picked ) {
+			$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
+			if ( '' !== $monitor_id ) {
+				$picked = array( $monitor_id );
+			}
 		}
+		if ( ! $picked ) {
+			// An empty list would publish every monitor in the account.
+			self::done( 'error', __( 'Pick at least one monitor to show on the status page.', 'downtime-uptime-monitoring' ) );
+		}
+		$page['monitor_ids'] = $picked;
 		$result = Downtime_API::create_status_page( $page );
 		if ( ! Downtime_API::ok( $result ) ) {
 			if ( ! is_wp_error( $result ) && 409 === $result['code'] && ! empty( $result['body']['suggestions'] ) ) {
@@ -183,6 +259,22 @@ class Downtime_Admin {
 		}
 		update_option( Downtime_Embed::OPTION_SLUG, $slug, false );
 		self::done( 'success', __( 'Status page saved.', 'downtime-uptime-monitoring' ) );
+	}
+
+	/** Embed an existing status page from the account instead of creating one. */
+	public static function handle_use_status_page() {
+		self::require_admin( 'downtime_use_status_page' );
+		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( sanitize_text_field( wp_unslash( $_POST['slug'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( '' === $slug ) {
+			delete_option( Downtime_Embed::OPTION_SLUG );
+			self::done( 'success', __( 'Status page cleared. You can create or pick another one.', 'downtime-uptime-monitoring' ) );
+		}
+		update_option( Downtime_Embed::OPTION_SLUG, $slug, false );
+		self::done( 'success', __( 'Status page saved.', 'downtime-uptime-monitoring' ) );
+	}
+
+	private static function is_uuid( $id ) {
+		return (bool) preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id );
 	}
 
 	/**
@@ -281,6 +373,12 @@ class Downtime_Admin {
 		if ( $mine ) {
 			/* translators: %s: site URL */
 			echo '<p>' . esc_html( sprintf( __( '%s is monitored.', 'downtime-uptime-monitoring' ), $home ) ) . ' <a href="' . esc_url( Downtime_API::base_url() . '/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open DownTime dashboard', 'downtime-uptime-monitoring' ) . '</a></p>';
+			if ( get_option( self::OPTION_ALERT_ID ) ) {
+				echo '<p>' . esc_html__( 'Email alerts are on: DownTime emails your account address when the site goes down and when it recovers.', 'downtime-uptime-monitoring' ) . '</p>';
+			} else {
+				echo '<p>' . esc_html__( 'No email alerts set up from this site. If you already set up alerts in the DownTime dashboard, you can ignore this.', 'downtime-uptime-monitoring' ) . '</p>';
+				self::form( 'downtime_email_alerts', __( 'Turn on email alerts', 'downtime-uptime-monitoring' ), 'button' );
+			}
 		} elseif ( ! self::is_public_site() ) {
 			/* translators: %s: site URL */
 			echo '<p>' . esc_html( sprintf( __( '%s is a local or private address, so DownTime cannot reach it. Monitoring becomes available once the site is on a public address.', 'downtime-uptime-monitoring' ), $home ) ) . '</p>';
@@ -288,6 +386,22 @@ class Downtime_Admin {
 			/* translators: %s: site URL */
 			echo '<p>' . esc_html( sprintf( __( '%s is not monitored yet.', 'downtime-uptime-monitoring' ), $home ) ) . '</p>';
 			self::form( 'downtime_monitor_site', __( 'Monitor this site', 'downtime-uptime-monitoring' ) );
+		}
+
+		// WP-Cron heartbeat.
+		echo '<h2>' . esc_html__( 'WP-Cron', 'downtime-uptime-monitoring' ) . '</h2>';
+		if ( '' !== Downtime_Heartbeat::monitor_id() ) {
+			$next = wp_next_scheduled( Downtime_Heartbeat::HOOK );
+			echo '<p>' . esc_html__( 'Watched: this site pings DownTime every hour from WP-Cron, and DownTime emails you if pings stop for more than 90 minutes.', 'downtime-uptime-monitoring' );
+			if ( $next ) {
+				/* translators: %s: human-readable time until the next ping */
+				echo ' ' . esc_html( sprintf( __( 'Next ping in %s.', 'downtime-uptime-monitoring' ), human_time_diff( time(), $next ) ) );
+			}
+			echo '</p>';
+			self::form( 'downtime_heartbeat_off', __( 'Stop watching WP-Cron', 'downtime-uptime-monitoring' ), 'button' );
+		} else {
+			echo '<p>' . esc_html__( 'WP-Cron runs scheduled posts, backups and updates. Watch it to get an email when it stops running. WP-Cron only runs when the site gets visits, so on a very quiet site, run it from a real system cron to avoid false alarms.', 'downtime-uptime-monitoring' ) . '</p>';
+			self::form( 'downtime_heartbeat_on', __( 'Watch WP-Cron', 'downtime-uptime-monitoring' ), 'button' );
 		}
 
 		// Status page.
@@ -300,11 +414,37 @@ class Downtime_Admin {
 			echo '<h3>' . esc_html__( 'Embed it', 'downtime-uptime-monitoring' ) . '</h3>';
 			echo '<p>' . esc_html__( 'Use the "DownTime Status" block, or one of these shortcodes:', 'downtime-uptime-monitoring' ) . '</p>';
 			echo '<p><code>[downtime_badge]</code> <code>[downtime_badge type="uptime"]</code> <code>[downtime_status]</code></p>';
+			self::form( 'downtime_use_status_page', __( 'Use a different status page', 'downtime-uptime-monitoring' ), 'button', '<input type="hidden" name="slug" value="">' );
 		} else {
+			$pages = self::items( Downtime_API::list_status_pages(), 'status_pages' );
+			if ( $pages ) {
+				echo '<p>' . esc_html__( 'Use one of your existing status pages:', 'downtime-uptime-monitoring' ) . '</p>';
+				$options = '';
+				foreach ( $pages as $p ) {
+					if ( empty( $p['slug'] ) ) {
+						continue;
+					}
+					$label    = ! empty( $p['title'] ) ? $p['title'] . ' (' . $p['slug'] . ')' : $p['slug'];
+					$options .= '<option value="' . esc_attr( $p['slug'] ) . '">' . esc_html( $label ) . '</option>';
+				}
+				self::form( 'downtime_use_status_page', __( 'Use this page', 'downtime-uptime-monitoring' ), 'button', '<select name="slug">' . $options . '</select> ' );
+				echo '<p>' . esc_html__( 'Or create a new one:', 'downtime-uptime-monitoring' ) . '</p>';
+			}
 			$host      = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
 			$suggested = Downtime_Embed::sanitize_slug( preg_replace( '/[^a-z0-9]+/', '-', strtolower( preg_replace( '/^www\./', '', $host ) ) ) );
 			echo '<p>' . esc_html__( 'Publish a public status page for this site. Its address will be:', 'downtime-uptime-monitoring' ) . ' <code>' . esc_html( Downtime_API::base_url() . '/status/' ) . '&lt;slug&gt;</code></p>';
 			$field = '<input type="text" name="slug" value="' . esc_attr( $suggested ) . '" pattern="[a-z0-9]([a-z0-9\\-]{0,38}[a-z0-9])?" required> ';
+			$site_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
+			$boxes   = '';
+			foreach ( $monitors as $m ) {
+				if ( empty( $m['id'] ) || 'heartbeat' === ( $m['type'] ?? '' ) ) {
+					continue;
+				}
+				$boxes .= '<label style="display:block"><input type="checkbox" name="monitor_ids[]" value="' . esc_attr( $m['id'] ) . '"' . checked( $m['id'], $site_id, false ) . '> ' . esc_html( ! empty( $m['name'] ) ? $m['name'] : ( $m['url'] ?? $m['id'] ) ) . '</label>';
+			}
+			if ( '' !== $boxes ) {
+				$field .= '<fieldset style="margin:8px 0"><legend>' . esc_html__( 'Monitors to show:', 'downtime-uptime-monitoring' ) . '</legend>' . $boxes . '</fieldset>';
+			}
 			self::form( 'downtime_status_page', __( 'Create status page', 'downtime-uptime-monitoring' ), 'button button-primary', $field );
 		}
 		echo '</div>';

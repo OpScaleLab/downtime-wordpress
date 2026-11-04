@@ -5,7 +5,8 @@
  * Every call happens here, from PHP, with the key in the X-API-Key header.
  * The key never reaches a browser. It is an `integration`-scoped key
  * (DownTime gateway, services/gateway-go/scopes.go): it can list/create
- * monitors and status pages and read results, nothing else.
+ * monitors and status pages, read results and incidents, and create
+ * email-only alert rules, nothing else.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -134,5 +135,26 @@ class Downtime_API {
 
 	public static function create_status_page( $page ) {
 		return self::request( 'POST', '/api/status-pages', $page );
+	}
+
+	/**
+	 * Turn on email alerts for a monitor. The integration key may only create
+	 * an email-only rule; DownTime sends it to the account owner's address.
+	 */
+	public static function create_email_alert( $monitor_id, $name, $threshold = 2 ) {
+		return self::request(
+			'POST',
+			'/api/rules',
+			array(
+				'name'            => $name,
+				'monitor_id'      => $monitor_id,
+				'condition'       => 'consecutive_failures',
+				// Default two failed checks in a row, so one network blip
+				// doesn't send an email.
+				'threshold'       => (int) $threshold,
+				'notify_channels' => array( 'email' ),
+				'active'          => true,
+			)
+		);
 	}
 }
