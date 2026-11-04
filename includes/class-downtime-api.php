@@ -2,7 +2,7 @@
 /**
  * Server-side DownTime API client.
  *
- * Every call happens here, from PHP, with the key in the X-API-Key header.
+ * Every call happens here, from PHP, with the key in the X-API-Key header (and as a Bearer token for proxies that drop custom headers).
  * The key never reaches a browser. It is an `integration`-scoped key
  * (DownTime gateway, services/gateway-go/scopes.go): it can list/create
  * monitors and status pages, read results and incidents, and create
@@ -53,6 +53,10 @@ class Downtime_API {
 				return new WP_Error( 'downtime_not_connected', __( 'This site is not connected to DownTime.', 'downtime-uptime-monitoring' ) );
 			}
 			$headers['X-API-Key'] = $key;
+			// Same key again for hosts whose outbound proxy drops custom
+			// headers (WordPress Playground forwards only Accept,
+			// Authorization and Content-Type). DownTime prefers X-API-Key.
+			$headers['Authorization'] = 'Bearer ' . $key;
 		}
 		$args = array(
 			'method'  => $method,
