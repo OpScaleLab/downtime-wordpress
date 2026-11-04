@@ -34,10 +34,17 @@ class Downtime_Admin {
 		add_action( 'admin_post_downtime_heartbeat_on', array( __CLASS__, 'handle_heartbeat_on' ) );
 		add_action( 'admin_post_downtime_heartbeat_off', array( __CLASS__, 'handle_heartbeat_off' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( DOWNTIME_PLUGIN_FILE ), array( __CLASS__, 'action_links' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 	}
 
 	public static function menu() {
 		add_options_page( __( 'DownTime', 'downtime-uptime-monitoring' ), __( 'DownTime', 'downtime-uptime-monitoring' ), 'manage_options', self::PAGE, array( __CLASS__, 'render' ) );
+	}
+
+	public static function enqueue( $hook ) {
+		if ( 'settings_page_' . self::PAGE === $hook ) {
+			wp_enqueue_script( 'downtime-admin', DOWNTIME_PLUGIN_URL . 'assets/admin.js', array(), DOWNTIME_PLUGIN_VERSION, true );
+		}
 	}
 
 	public static function action_links( $links ) {
