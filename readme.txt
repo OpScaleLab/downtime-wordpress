@@ -51,7 +51,7 @@ WP-Cron only runs when someone visits the site. If the site gets no visits for o
 
 = 0.2.2 =
 * Connect works when wp-admin runs inside a frame, such as WordPress Playground: it opens DownTime in a new tab.
-* The key is also sent as a Bearer token, so API calls work in WordPress Playground, whose proxy drops custom headers.
+* The key is also sent as a standard Bearer token, for hosts whose outbound proxy drops custom headers.
 
 = 0.2.1 =
 * Readme: list the real WordPress.org contributor account.
