@@ -1,10 +1,10 @@
 === DownTime Uptime Monitoring ===
-Contributors: opscale
+Contributors: alirezataleghani
 Tags: uptime, monitoring, status page, downtime, status badge
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Yes: pass `slug="your-page"` to either shortcode, or set it in the block's sideb
 WP-Cron only runs when someone visits the site. If the site gets no visits for over 90 minutes, no heartbeat is sent. Run WP-Cron from a real system cron (see "Hooking WP-Cron Into the System Task Scheduler" in the WordPress handbook) or stop watching WP-Cron on the settings page.
 
 == Changelog ==
+
+= 0.2.1 =
+* Readme: list the real WordPress.org contributor account.
 
 = 0.2.0 =
 * "Monitor this site" now also turns on email alerts (down and recovered), and sites monitored with 0.1.0 get a "Turn on email alerts" button.
