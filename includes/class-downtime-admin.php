@@ -248,7 +248,12 @@ class Downtime_Admin {
 		$picked = isset( $_POST['monitor_ids'] ) ? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['monitor_ids'] ) ) : array();
 		$picked = array_values( array_filter( $picked, array( __CLASS__, 'is_uuid' ) ) );
 		if ( ! $picked ) {
+			// Default to the site monitor, or the WP-Cron heartbeat when the
+			// site has no public address (e.g. WordPress Playground).
 			$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
+			if ( '' === $monitor_id ) {
+				$monitor_id = Downtime_Heartbeat::monitor_id();
+			}
 			if ( '' !== $monitor_id ) {
 				$picked = array( $monitor_id );
 			}
@@ -444,18 +449,26 @@ class Downtime_Admin {
 			$suggested = Downtime_Embed::sanitize_slug( preg_replace( '/[^a-z0-9]+/', '-', strtolower( preg_replace( '/^www\./', '', $host ) ) ) );
 			echo '<p>' . esc_html__( 'Publish a public status page for this site. Its address will be:', 'downtime-uptime-monitoring' ) . ' <code>' . esc_html( Downtime_API::base_url() . '/status/' ) . '&lt;slug&gt;</code></p>';
 			$field = '<input type="text" name="slug" value="' . esc_attr( $suggested ) . '" pattern="[a-z0-9]([a-z0-9\\-]{0,38}[a-z0-9])?" required> ';
-			$site_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
-			$boxes   = '';
+			$default_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
+			if ( '' === $default_id ) {
+				$default_id = Downtime_Heartbeat::monitor_id();
+			}
+			$boxes = '';
 			foreach ( $monitors as $m ) {
-				if ( empty( $m['id'] ) || 'heartbeat' === ( $m['type'] ?? '' ) ) {
+				if ( empty( $m['id'] ) ) {
 					continue;
 				}
-				$boxes .= '<label style="display:block"><input type="checkbox" name="monitor_ids[]" value="' . esc_attr( $m['id'] ) . '"' . checked( $m['id'], $site_id, false ) . '> ' . esc_html( ! empty( $m['name'] ) ? $m['name'] : ( $m['url'] ?? $m['id'] ) ) . '</label>';
+				$label  = ! empty( $m['name'] ) ? $m['name'] : ( $m['url'] ?? $m['id'] );
+				$boxes .= '<label style="display:block"><input type="checkbox" name="monitor_ids[]" value="' . esc_attr( $m['id'] ) . '"' . checked( $m['id'], $default_id, false ) . '> ' . esc_html( $label ) . '</label>';
 			}
-			if ( '' !== $boxes ) {
+			if ( '' === $boxes ) {
+				// Creating would fail: an empty list is refused, since the
+				// API would otherwise publish every monitor in the account.
+				echo '<p>' . esc_html__( 'Add a monitor first (above), then you can publish a status page for it.', 'downtime-uptime-monitoring' ) . '</p>';
+			} else {
 				$field .= '<fieldset style="margin:8px 0"><legend>' . esc_html__( 'Monitors to show:', 'downtime-uptime-monitoring' ) . '</legend>' . $boxes . '</fieldset>';
+				self::form( 'downtime_status_page', __( 'Create status page', 'downtime-uptime-monitoring' ), 'button button-primary', $field );
 			}
-			self::form( 'downtime_status_page', __( 'Create status page', 'downtime-uptime-monitoring' ), 'button button-primary', $field );
 		}
 		echo '</div>';
 	}

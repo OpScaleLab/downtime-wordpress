@@ -4,7 +4,7 @@ Tags: uptime, monitoring, status page, downtime, status badge
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.2.2
+Stable tag: 0.2.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,10 @@ Yes: pass `slug="your-page"` to either shortcode, or set it in the block's sideb
 WP-Cron only runs when someone visits the site. If the site gets no visits for over 90 minutes, no heartbeat is sent. Run WP-Cron from a real system cron (see "Hooking WP-Cron Into the System Task Scheduler" in the WordPress handbook) or stop watching WP-Cron on the settings page.
 
 == Changelog ==
+
+= 0.2.3 =
+* Status page: the WP-Cron heartbeat can be shown on it, and is picked by default when the site itself cannot be monitored (WordPress Playground, local sites). Before, creating a page there failed with "Pick at least one monitor".
+* Status page: with no monitors yet, the page says to add one instead of showing a form that cannot succeed.
 
 = 0.2.2 =
 * Connect works when wp-admin runs inside a frame, such as WordPress Playground: it opens DownTime in a new tab.
