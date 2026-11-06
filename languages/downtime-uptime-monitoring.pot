@@ -1,0 +1,367 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-06 01:39+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: includes/class-downtime-admin.php:41 includes/class-downtime-widget.php:27
+msgid "DownTime"
+msgstr ""
+
+#: includes/class-downtime-admin.php:51
+msgid "Settings"
+msgstr ""
+
+#: includes/class-downtime-admin.php:65 includes/class-downtime-widget.php:36
+msgid "You do not have permission to do this."
+msgstr ""
+
+#: includes/class-downtime-admin.php:117
+msgid "Connection expired or was not started from this site. Please try again."
+msgstr ""
+
+#: includes/class-downtime-admin.php:120
+msgid "Connection was cancelled on DownTime."
+msgstr ""
+
+#: includes/class-downtime-admin.php:123
+msgid "DownTime did not return a connection code."
+msgstr ""
+
+#: includes/class-downtime-admin.php:131
+msgid "Connected to DownTime."
+msgstr ""
+
+#: includes/class-downtime-admin.php:145
+msgid "Disconnected here, but DownTime could not revoke the key. Revoke it under Settings → Integrations on DownTime."
+msgstr ""
+
+#: includes/class-downtime-admin.php:147
+msgid "Disconnected from DownTime."
+msgstr ""
+
+#: includes/class-downtime-admin.php:155
+msgid "This site is on a local or private address, so DownTime cannot reach it."
+msgstr ""
+
+#: includes/class-downtime-admin.php:175
+msgid "This site is now monitored, but email alerts could not be turned on. Try \"Turn on email alerts\" below."
+msgstr ""
+
+#: includes/class-downtime-admin.php:177
+msgid "This site is now monitored by DownTime. You will get an email if it goes down."
+msgstr ""
+
+#: includes/class-downtime-admin.php:195
+msgid "Monitor this site first."
+msgstr ""
+
+#: includes/class-downtime-admin.php:198
+msgid "Email alerts could not be turned on. You can add them in the DownTime dashboard under Alerts."
+msgstr ""
+
+#: includes/class-downtime-admin.php:200
+msgid "Email alerts are on."
+msgstr ""
+
+#: includes/class-downtime-admin.php:224
+msgid "WP-Cron is now watched. DownTime emails you if it stops running for more than 90 minutes."
+msgstr ""
+
+#: includes/class-downtime-admin.php:231
+msgid "Stopped sending WP-Cron heartbeats. Pause or delete the heartbeat monitor in the DownTime dashboard, or it will report WP-Cron as down."
+msgstr ""
+
+#: includes/class-downtime-admin.php:241
+msgid "Slug must be 1–40 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
+msgstr ""
+
+#: includes/class-downtime-admin.php:245
+msgid "Status"
+msgstr ""
+
+#: includes/class-downtime-admin.php:263
+msgid "Pick at least one monitor to show on the status page."
+msgstr ""
+
+#. translators: %s: comma-separated slug suggestions
+#: includes/class-downtime-admin.php:271
+#, php-format
+msgid "That address is taken. Try: %s"
+msgstr ""
+
+#: includes/class-downtime-admin.php:276 includes/class-downtime-admin.php:288
+msgid "Status page saved."
+msgstr ""
+
+#: includes/class-downtime-admin.php:285
+msgid "Status page cleared. You can create or pick another one."
+msgstr ""
+
+#: includes/class-downtime-admin.php:351
+msgid "DownTime Uptime Monitoring"
+msgstr ""
+
+#: includes/class-downtime-admin.php:355
+msgid "Connect this site to DownTime to monitor its uptime and show a live status badge or status page. You will sign in (or create a free account) on DownTime and approve access for this site."
+msgstr ""
+
+#: includes/class-downtime-admin.php:356
+msgid "Connect to DownTime"
+msgstr ""
+
+#: includes/class-downtime-admin.php:362
+msgid "Connection"
+msgstr ""
+
+#. translators: %s: DownTime account email
+#: includes/class-downtime-admin.php:366
+#, php-format
+msgid "Connected as %s."
+msgstr ""
+
+#: includes/class-downtime-admin.php:368
+msgid "The stored key is no longer valid (it may have been revoked on DownTime). Disconnect and connect again."
+msgstr ""
+
+#: includes/class-downtime-admin.php:372
+msgid "Disconnect"
+msgstr ""
+
+#: includes/class-downtime-admin.php:375
+msgid "Monitoring"
+msgstr ""
+
+#. translators: %s: site URL
+#: includes/class-downtime-admin.php:390
+#, php-format
+msgid "%s is monitored."
+msgstr ""
+
+#: includes/class-downtime-admin.php:390 includes/class-downtime-widget.php:170
+msgid "Open DownTime dashboard"
+msgstr ""
+
+#: includes/class-downtime-admin.php:392
+msgid "Email alerts are on: DownTime emails your account address when the site goes down and when it recovers."
+msgstr ""
+
+#: includes/class-downtime-admin.php:394
+msgid "No email alerts set up from this site. If you already set up alerts in the DownTime dashboard, you can ignore this."
+msgstr ""
+
+#: includes/class-downtime-admin.php:395
+msgid "Turn on email alerts"
+msgstr ""
+
+#. translators: %s: site URL
+#: includes/class-downtime-admin.php:399
+#, php-format
+msgid "%s is a local or private address, so DownTime cannot reach it. Monitoring becomes available once the site is on a public address."
+msgstr ""
+
+#. translators: %s: site URL
+#: includes/class-downtime-admin.php:402
+#, php-format
+msgid "%s is not monitored yet."
+msgstr ""
+
+#: includes/class-downtime-admin.php:403
+msgid "Monitor this site"
+msgstr ""
+
+#: includes/class-downtime-admin.php:407
+msgid "WP-Cron"
+msgstr ""
+
+#: includes/class-downtime-admin.php:410
+msgid "Watched: this site pings DownTime every hour from WP-Cron, and DownTime emails you if pings stop for more than 90 minutes."
+msgstr ""
+
+#. translators: %s: human-readable time until the next ping
+#: includes/class-downtime-admin.php:413
+#, php-format
+msgid "Next ping in %s."
+msgstr ""
+
+#: includes/class-downtime-admin.php:416
+msgid "Stop watching WP-Cron"
+msgstr ""
+
+#: includes/class-downtime-admin.php:418
+msgid "WP-Cron runs scheduled posts, backups and updates. Watch it to get an email when it stops running. WP-Cron only runs when the site gets visits, so on a very quiet site, run it from a real system cron to avoid false alarms."
+msgstr ""
+
+#: includes/class-downtime-admin.php:419
+msgid "Watch WP-Cron"
+msgstr ""
+
+#: includes/class-downtime-admin.php:423
+msgid "Status page"
+msgstr ""
+
+#: includes/class-downtime-admin.php:429
+msgid "Embed it"
+msgstr ""
+
+#: includes/class-downtime-admin.php:430
+msgid "Use the \"DownTime Status\" block, or one of these shortcodes:"
+msgstr ""
+
+#: includes/class-downtime-admin.php:432
+msgid "Use a different status page"
+msgstr ""
+
+#: includes/class-downtime-admin.php:436
+msgid "Use one of your existing status pages:"
+msgstr ""
+
+#: includes/class-downtime-admin.php:445
+msgid "Use this page"
+msgstr ""
+
+#: includes/class-downtime-admin.php:446
+msgid "Or create a new one:"
+msgstr ""
+
+#: includes/class-downtime-admin.php:450
+msgid "Publish a public status page for this site. Its address will be:"
+msgstr ""
+
+#: includes/class-downtime-admin.php:467
+msgid "Add a monitor first (above), then you can publish a status page for it."
+msgstr ""
+
+#: includes/class-downtime-admin.php:469
+msgid "Monitors to show:"
+msgstr ""
+
+#: includes/class-downtime-admin.php:470
+msgid "Create status page"
+msgstr ""
+
+#: includes/class-downtime-api.php:53
+msgid "This site is not connected to DownTime."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/class-downtime-api.php:92
+#, php-format
+msgid "Unexpected response from DownTime (HTTP %d)."
+msgstr ""
+
+#: includes/class-downtime-embed.php:43
+msgid "DownTime: no status page set. Create one under Settings → DownTime, or pass slug=\"…\"."
+msgstr ""
+
+#: includes/class-downtime-embed.php:68
+msgid "Uptime"
+msgstr ""
+
+#: includes/class-downtime-embed.php:68 includes/class-downtime-embed.php:92
+msgid "Service status"
+msgstr ""
+
+#. translators: %s: human-readable time difference, e.g. "5 mins"
+#: includes/class-downtime-widget.php:112
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: includes/class-downtime-widget.php:120
+msgid "This site is not monitored yet."
+msgstr ""
+
+#: includes/class-downtime-widget.php:120
+msgid "Set it up"
+msgstr ""
+
+#: includes/class-downtime-widget.php:126
+msgid "Paused"
+msgstr ""
+
+#: includes/class-downtime-widget.php:128
+msgid "Waiting for the first check"
+msgstr ""
+
+#: includes/class-downtime-widget.php:130
+msgid "Up"
+msgstr ""
+
+#: includes/class-downtime-widget.php:132
+msgid "Down"
+msgstr ""
+
+#. translators: %d: response time in milliseconds
+#: includes/class-downtime-widget.php:142
+#, php-format
+msgid "%d ms"
+msgstr ""
+
+#. translators: %d: days until the TLS certificate expires
+#: includes/class-downtime-widget.php:146
+#, php-format
+msgid "certificate expires in %d days"
+msgstr ""
+
+#. translators: 1: uptime percentage, 2: number of recent checks
+#: includes/class-downtime-widget.php:151
+#, php-format
+msgid "%1$s%% up over the last %2$d check"
+msgid_plural "%1$s%% up over the last %2$d checks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-downtime-widget.php:162
+msgid "Recent incidents"
+msgstr ""
+
+#: includes/class-downtime-widget.php:165
+msgid "resolved"
+msgstr ""
+
+#: includes/class-downtime-widget.php:165
+msgid "open"
+msgstr ""
+
+#: includes/class-downtime-widget.php:171
+msgid "Refresh"
+msgstr ""
+
+#: blocks/status/index.js:23
+msgid "Show"
+msgstr ""
+
+#: blocks/status/index.js:27
+msgid "Status badge"
+msgstr ""
+
+#: blocks/status/index.js:28
+msgid "Uptime badge"
+msgstr ""
+
+#: blocks/status/index.js:33
+msgid "Status page slug"
+msgstr ""
+
+#: blocks/status/index.js:34
+msgid "Leave empty to use the one set under Settings → DownTime."
+msgstr ""
+
+#: blocks/status/index.js:39
+msgid "Initial height (px)"
+msgstr ""
