@@ -131,7 +131,7 @@ class Downtime_Widget {
 			} else {
 				$state = array( '#d63638', __( 'Down', 'downtime-uptime-monitoring' ) );
 			}
-			echo '<p style="margin:0 0 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr( $state[0] ) . ';margin-right:6px"></span>';
+			echo '<p style="margin:0 0 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr( $state[0] ) . ';margin-inline-end:6px"></span>';
 			echo '<strong>' . esc_html( $m['name'] ) . '</strong> — ' . esc_html( $state[1] ) . '</p>';
 
 			$facts = array();
@@ -154,7 +154,7 @@ class Downtime_Widget {
 				$facts[] = $latest['error'];
 			}
 			if ( $facts ) {
-				echo '<p style="margin:0 0 10px 16px;color:#50575e">' . esc_html( implode( ' · ', array_filter( $facts ) ) ) . '</p>';
+				echo '<p style="margin:0 0 10px;padding-inline-start:16px;color:#50575e">' . esc_html( implode( ' · ', array_filter( $facts ) ) ) . '</p>';
 			}
 		}
 

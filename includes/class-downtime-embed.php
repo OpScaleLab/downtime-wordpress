@@ -104,6 +104,8 @@ class Downtime_Embed {
 			DOWNTIME_PLUGIN_DIR . 'blocks/status',
 			array( 'render_callback' => array( __CLASS__, 'render_block' ) )
 		);
+		// The editor script's strings, from languages/ (same fallback as PHP).
+		wp_set_script_translations( 'downtime-status-editor-script', 'downtime-uptime-monitoring', DOWNTIME_PLUGIN_DIR . 'languages' );
 	}
 
 	public static function render_block( $attributes ) {

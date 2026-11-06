@@ -1,0 +1,362 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: DownTime Uptime Monitoring 0.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-06 01:37+0100\n"
+"PO-Revision-Date: 2026-11-06 01:45+0100\n"
+"Last-Translator: OpScale\n"
+"Language-Team: Persian\n"
+"Language: fa_IR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: includes/class-downtime-admin.php:41 includes/class-downtime-widget.php:27
+msgid "DownTime"
+msgstr "داون‌تایم"
+
+#: includes/class-downtime-admin.php:51
+msgid "Settings"
+msgstr "تنظیمات"
+
+#: includes/class-downtime-admin.php:65 includes/class-downtime-widget.php:36
+msgid "You do not have permission to do this."
+msgstr "شما اجازهٔ انجام این کار را ندارید."
+
+#: includes/class-downtime-admin.php:117
+msgid "Connection expired or was not started from this site. Please try again."
+msgstr "اتصال منقضی شده یا از این سایت آغاز نشده است. لطفاً دوباره تلاش کنید."
+
+#: includes/class-downtime-admin.php:120
+msgid "Connection was cancelled on DownTime."
+msgstr "اتصال در داون‌تایم لغو شد."
+
+#: includes/class-downtime-admin.php:123
+msgid "DownTime did not return a connection code."
+msgstr "داون‌تایم کد اتصال را برنگرداند."
+
+#: includes/class-downtime-admin.php:131
+msgid "Connected to DownTime."
+msgstr "به داون‌تایم متصل شد."
+
+#: includes/class-downtime-admin.php:145
+msgid "Disconnected here, but DownTime could not revoke the key. Revoke it under Settings → Integrations on DownTime."
+msgstr "اتصال در این سایت قطع شد، اما داون‌تایم نتوانست کلید را باطل کند. آن را در داون‌تایم از بخش تنظیمات ← یکپارچه‌سازی‌ها باطل کنید."
+
+#: includes/class-downtime-admin.php:147
+msgid "Disconnected from DownTime."
+msgstr "اتصال از داون‌تایم قطع شد."
+
+#: includes/class-downtime-admin.php:155
+msgid "This site is on a local or private address, so DownTime cannot reach it."
+msgstr "این سایت روی یک نشانی محلی یا خصوصی است، بنابراین داون‌تایم به آن دسترسی ندارد."
+
+#: includes/class-downtime-admin.php:175
+msgid "This site is now monitored, but email alerts could not be turned on. Try \"Turn on email alerts\" below."
+msgstr "این سایت اکنون پایش می‌شود، اما هشدارهای ایمیلی روشن نشد. «روشن کردن هشدارهای ایمیلی» را در پایین امتحان کنید."
+
+#: includes/class-downtime-admin.php:177
+msgid "This site is now monitored by DownTime. You will get an email if it goes down."
+msgstr "این سایت اکنون با داون‌تایم پایش می‌شود. اگر از دسترس خارج شود، ایمیل دریافت می‌کنید."
+
+#: includes/class-downtime-admin.php:195
+msgid "Monitor this site first."
+msgstr "ابتدا پایش این سایت را روشن کنید."
+
+#: includes/class-downtime-admin.php:198
+msgid "Email alerts could not be turned on. You can add them in the DownTime dashboard under Alerts."
+msgstr "هشدارهای ایمیلی روشن نشد. می‌توانید آن‌ها را در داشبورد داون‌تایم از بخش هشدارها اضافه کنید."
+
+#: includes/class-downtime-admin.php:200
+msgid "Email alerts are on."
+msgstr "هشدارهای ایمیلی روشن است."
+
+#: includes/class-downtime-admin.php:224
+msgid "WP-Cron is now watched. DownTime emails you if it stops running for more than 90 minutes."
+msgstr "WP-Cron اکنون زیر نظر است. اگر بیش از ۹۰ دقیقه اجرا نشود، داون‌تایم به شما ایمیل می‌زند."
+
+#: includes/class-downtime-admin.php:231
+msgid "Stopped sending WP-Cron heartbeats. Pause or delete the heartbeat monitor in the DownTime dashboard, or it will report WP-Cron as down."
+msgstr "ارسال ضربان WP-Cron متوقف شد. پایشگر ضربان را در داشبورد داون‌تایم متوقف یا حذف کنید، وگرنه WP-Cron را از کار افتاده گزارش می‌کند."
+
+#: includes/class-downtime-admin.php:241
+msgid "Slug must be 1–40 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
+msgstr "نامک باید ۱ تا ۴۰ نویسهٔ حروف کوچک لاتین، رقم یا خط تیره باشد و با حرف یا رقم شروع و تمام شود."
+
+#: includes/class-downtime-admin.php:245
+msgid "Status"
+msgstr "وضعیت"
+
+#: includes/class-downtime-admin.php:263
+msgid "Pick at least one monitor to show on the status page."
+msgstr "دست‌کم یک پایشگر برای نمایش در صفحهٔ وضعیت انتخاب کنید."
+
+#. translators: %s: comma-separated slug suggestions
+#: includes/class-downtime-admin.php:271
+#, php-format
+msgid "That address is taken. Try: %s"
+msgstr "این نشانی گرفته شده است. این‌ها را امتحان کنید: %s"
+
+#: includes/class-downtime-admin.php:276 includes/class-downtime-admin.php:288
+msgid "Status page saved."
+msgstr "صفحهٔ وضعیت ذخیره شد."
+
+#: includes/class-downtime-admin.php:285
+msgid "Status page cleared. You can create or pick another one."
+msgstr "صفحهٔ وضعیت برداشته شد. می‌توانید صفحهٔ دیگری بسازید یا انتخاب کنید."
+
+#: includes/class-downtime-admin.php:351
+msgid "DownTime Uptime Monitoring"
+msgstr "پایش دسترس‌پذیری داون‌تایم"
+
+#: includes/class-downtime-admin.php:355
+msgid "Connect this site to DownTime to monitor its uptime and show a live status badge or status page. You will sign in (or create a free account) on DownTime and approve access for this site."
+msgstr "این سایت را به داون‌تایم متصل کنید تا دسترس‌پذیری آن پایش شود و یک نشان وضعیت زنده یا صفحهٔ وضعیت نمایش دهید. در داون‌تایم وارد می‌شوید (یا یک حساب رایگان می‌سازید) و دسترسی این سایت را تأیید می‌کنید."
+
+#: includes/class-downtime-admin.php:356
+msgid "Connect to DownTime"
+msgstr "اتصال به داون‌تایم"
+
+#: includes/class-downtime-admin.php:362
+msgid "Connection"
+msgstr "اتصال"
+
+#. translators: %s: DownTime account email
+#: includes/class-downtime-admin.php:366
+#, php-format
+msgid "Connected as %s."
+msgstr "متصل با حساب %s."
+
+#: includes/class-downtime-admin.php:368
+msgid "The stored key is no longer valid (it may have been revoked on DownTime). Disconnect and connect again."
+msgstr "کلید ذخیره‌شده دیگر معتبر نیست (شاید در داون‌تایم باطل شده باشد). اتصال را قطع و دوباره وصل کنید."
+
+#: includes/class-downtime-admin.php:372
+msgid "Disconnect"
+msgstr "قطع اتصال"
+
+#: includes/class-downtime-admin.php:375
+msgid "Monitoring"
+msgstr "پایش"
+
+#. translators: %s: site URL
+#: includes/class-downtime-admin.php:390
+#, php-format
+msgid "%s is monitored."
+msgstr "%s پایش می‌شود."
+
+#: includes/class-downtime-admin.php:390 includes/class-downtime-widget.php:170
+msgid "Open DownTime dashboard"
+msgstr "باز کردن داشبورد داون‌تایم"
+
+#: includes/class-downtime-admin.php:392
+msgid "Email alerts are on: DownTime emails your account address when the site goes down and when it recovers."
+msgstr "هشدارهای ایمیلی روشن است: داون‌تایم هنگام از دسترس خارج شدن سایت و بازگشت آن، به نشانی ایمیل حساب شما پیام می‌فرستد."
+
+#: includes/class-downtime-admin.php:394
+msgid "No email alerts set up from this site. If you already set up alerts in the DownTime dashboard, you can ignore this."
+msgstr "هیچ هشدار ایمیلی از این سایت تنظیم نشده است. اگر قبلاً در داشبورد داون‌تایم هشدار تنظیم کرده‌اید، این را نادیده بگیرید."
+
+#: includes/class-downtime-admin.php:395
+msgid "Turn on email alerts"
+msgstr "روشن کردن هشدارهای ایمیلی"
+
+#. translators: %s: site URL
+#: includes/class-downtime-admin.php:399
+#, php-format
+msgid "%s is a local or private address, so DownTime cannot reach it. Monitoring becomes available once the site is on a public address."
+msgstr "%s یک نشانی محلی یا خصوصی است، بنابراین داون‌تایم به آن دسترسی ندارد. وقتی سایت روی یک نشانی عمومی باشد، پایش در دسترس خواهد بود."
+
+#. translators: %s: site URL
+#: includes/class-downtime-admin.php:402
+#, php-format
+msgid "%s is not monitored yet."
+msgstr "%s هنوز پایش نمی‌شود."
+
+#: includes/class-downtime-admin.php:403
+msgid "Monitor this site"
+msgstr "پایش این سایت"
+
+#: includes/class-downtime-admin.php:407
+msgid "WP-Cron"
+msgstr "WP-Cron"
+
+#: includes/class-downtime-admin.php:410
+msgid "Watched: this site pings DownTime every hour from WP-Cron, and DownTime emails you if pings stop for more than 90 minutes."
+msgstr "زیر نظر: این سایت هر ساعت از طریق WP-Cron به داون‌تایم پینگ می‌فرستد و اگر پینگ‌ها بیش از ۹۰ دقیقه قطع شوند، داون‌تایم به شما ایمیل می‌زند."
+
+#. translators: %s: human-readable time until the next ping
+#: includes/class-downtime-admin.php:413
+#, php-format
+msgid "Next ping in %s."
+msgstr "پینگ بعدی تا %s دیگر."
+
+#: includes/class-downtime-admin.php:416
+msgid "Stop watching WP-Cron"
+msgstr "توقف نظارت بر WP-Cron"
+
+#: includes/class-downtime-admin.php:418
+msgid "WP-Cron runs scheduled posts, backups and updates. Watch it to get an email when it stops running. WP-Cron only runs when the site gets visits, so on a very quiet site, run it from a real system cron to avoid false alarms."
+msgstr "WP-Cron نوشته‌های زمان‌بندی‌شده، پشتیبان‌گیری‌ها و به‌روزرسانی‌ها را اجرا می‌کند. آن را زیر نظر بگیرید تا وقتی از کار افتاد ایمیل دریافت کنید. WP-Cron فقط با بازدید از سایت اجرا می‌شود؛ پس در سایتی کم‌بازدید، برای جلوگیری از هشدار نادرست آن را با cron واقعی سیستم اجرا کنید."
+
+#: includes/class-downtime-admin.php:419
+msgid "Watch WP-Cron"
+msgstr "نظارت بر WP-Cron"
+
+#: includes/class-downtime-admin.php:423
+msgid "Status page"
+msgstr "صفحهٔ وضعیت"
+
+#: includes/class-downtime-admin.php:429
+msgid "Embed it"
+msgstr "جاسازی"
+
+#: includes/class-downtime-admin.php:430
+msgid "Use the \"DownTime Status\" block, or one of these shortcodes:"
+msgstr "از بلوک «وضعیت داون‌تایم» یا یکی از این کدهای کوتاه استفاده کنید:"
+
+#: includes/class-downtime-admin.php:432
+msgid "Use a different status page"
+msgstr "استفاده از صفحهٔ وضعیت دیگر"
+
+#: includes/class-downtime-admin.php:436
+msgid "Use one of your existing status pages:"
+msgstr "از یکی از صفحه‌های وضعیت موجود خود استفاده کنید:"
+
+#: includes/class-downtime-admin.php:445
+msgid "Use this page"
+msgstr "استفاده از این صفحه"
+
+#: includes/class-downtime-admin.php:446
+msgid "Or create a new one:"
+msgstr "یا یک صفحهٔ جدید بسازید:"
+
+#: includes/class-downtime-admin.php:450
+msgid "Publish a public status page for this site. Its address will be:"
+msgstr "یک صفحهٔ وضعیت عمومی برای این سایت منتشر کنید. نشانی آن چنین خواهد بود:"
+
+#: includes/class-downtime-admin.php:467
+msgid "Add a monitor first (above), then you can publish a status page for it."
+msgstr "ابتدا یک پایشگر (در بالا) اضافه کنید، سپس می‌توانید برای آن صفحهٔ وضعیت منتشر کنید."
+
+#: includes/class-downtime-admin.php:469
+msgid "Monitors to show:"
+msgstr "پایشگرهای قابل نمایش:"
+
+#: includes/class-downtime-admin.php:470
+msgid "Create status page"
+msgstr "ساخت صفحهٔ وضعیت"
+
+#: includes/class-downtime-api.php:53
+msgid "This site is not connected to DownTime."
+msgstr "این سایت به داون‌تایم متصل نیست."
+
+#. translators: %d: HTTP status code.
+#: includes/class-downtime-api.php:92
+#, php-format
+msgid "Unexpected response from DownTime (HTTP %d)."
+msgstr "پاسخ غیرمنتظره از داون‌تایم (HTTP %d)."
+
+#: includes/class-downtime-embed.php:43
+msgid "DownTime: no status page set. Create one under Settings → DownTime, or pass slug=\"…\"."
+msgstr "داون‌تایم: هیچ صفحهٔ وضعیتی تنظیم نشده است. از تنظیمات ← داون‌تایم یکی بسازید، یا slug=\"…\" را وارد کنید."
+
+#: includes/class-downtime-embed.php:68
+msgid "Uptime"
+msgstr "دسترس‌پذیری"
+
+#: includes/class-downtime-embed.php:68 includes/class-downtime-embed.php:92
+msgid "Service status"
+msgstr "وضعیت سرویس"
+
+#. translators: %s: human-readable time difference, e.g. "5 mins"
+#: includes/class-downtime-widget.php:112
+#, php-format
+msgid "%s ago"
+msgstr "%s پیش"
+
+#: includes/class-downtime-widget.php:120
+msgid "This site is not monitored yet."
+msgstr "این سایت هنوز پایش نمی‌شود."
+
+#: includes/class-downtime-widget.php:120
+msgid "Set it up"
+msgstr "راه‌اندازی"
+
+#: includes/class-downtime-widget.php:126
+msgid "Paused"
+msgstr "متوقف"
+
+#: includes/class-downtime-widget.php:128
+msgid "Waiting for the first check"
+msgstr "در انتظار نخستین بررسی"
+
+#: includes/class-downtime-widget.php:130
+msgid "Up"
+msgstr "در دسترس"
+
+#: includes/class-downtime-widget.php:132
+msgid "Down"
+msgstr "از دسترس خارج"
+
+#. translators: %d: response time in milliseconds
+#: includes/class-downtime-widget.php:142
+#, php-format
+msgid "%d ms"
+msgstr "%d میلی‌ثانیه"
+
+#. translators: %d: days until the TLS certificate expires
+#: includes/class-downtime-widget.php:146
+#, php-format
+msgid "certificate expires in %d days"
+msgstr "گواهی تا %d روز دیگر منقضی می‌شود"
+
+#. translators: 1: uptime percentage, 2: number of recent checks
+#: includes/class-downtime-widget.php:151
+#, php-format
+msgid "%1$s%% up over the last %2$d check"
+msgid_plural "%1$s%% up over the last %2$d checks"
+msgstr[0] "%1$s%% در دسترس در %2$d بررسی اخیر"
+msgstr[1] "%1$s%% در دسترس در %2$d بررسی اخیر"
+
+#: includes/class-downtime-widget.php:162
+msgid "Recent incidents"
+msgstr "رخدادهای اخیر"
+
+#: includes/class-downtime-widget.php:165
+msgid "resolved"
+msgstr "برطرف‌شده"
+
+#: includes/class-downtime-widget.php:165
+msgid "open"
+msgstr "باز"
+
+#: includes/class-downtime-widget.php:171
+msgid "Refresh"
+msgstr "تازه‌سازی"
+
+#: blocks/status/index.js:23
+msgid "Show"
+msgstr "نمایش"
+
+#: blocks/status/index.js:27
+msgid "Status badge"
+msgstr "نشان وضعیت"
+
+#: blocks/status/index.js:28
+msgid "Uptime badge"
+msgstr "نشان دسترس‌پذیری"
+
+#: blocks/status/index.js:33
+msgid "Status page slug"
+msgstr "نامک صفحهٔ وضعیت"
+
+#: blocks/status/index.js:34
+msgid "Leave empty to use the one set under Settings → DownTime."
+msgstr "خالی بگذارید تا از صفحهٔ تنظیم‌شده در تنظیمات ← داون‌تایم استفاده شود."
+
+#: blocks/status/index.js:39
+msgid "Initial height (px)"
+msgstr "ارتفاع اولیه (پیکسل)"
