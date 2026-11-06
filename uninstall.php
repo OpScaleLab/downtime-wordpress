@@ -10,5 +10,7 @@ delete_option( 'downtime_status_slug' );
 delete_option( 'downtime_site_alert_rule_id' );
 delete_option( 'downtime_heartbeat_monitor_id' );
 delete_option( 'downtime_heartbeat_alert_rule_id' );
+delete_option( 'downtime_tls_alert_rule_id' );
+delete_option( 'downtime_wp_status_page_id' );
 delete_transient( 'downtime_widget_cache' );
 wp_clear_scheduled_hook( 'downtime_heartbeat_ping' );

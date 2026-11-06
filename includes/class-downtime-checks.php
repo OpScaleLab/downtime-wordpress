@@ -2,8 +2,10 @@
 /**
  * Settings → DownTime, the parts that manage this site's checks:
  *
- * - Recommended checks: one click adds WordPress-specific monitors (login
- *   page, REST API, sitemap, TLS certificate) with the details filled in.
+ * - Set up monitoring: one checklist of WordPress-specific monitors
+ *   (homepage, login page, REST API, sitemap, TLS certificate, DNS, TCP
+ *   port, ping, WP-Cron heartbeat) added in one click. A check the account
+ *   already has is reused, never created twice, wherever it came from.
  * - This site's monitors: pause, resume and delete them from wp-admin.
  *   DownTime only lets this site's key change monitors it created itself
  *   (chart 0.31.0+); others link to the DownTime dashboard instead.
@@ -16,7 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Downtime_Checks {
 
-	const OPTION_WP_PAGE = 'downtime_wp_status_page_id';
+	const OPTION_WP_PAGE   = 'downtime_wp_status_page_id';
+	const OPTION_TLS_ALERT = 'downtime_tls_alert_rule_id';
 
 	public static function init() {
 		add_action( 'admin_post_downtime_add_checks', array( __CLASS__, 'handle_add_checks' ) );
@@ -31,24 +34,58 @@ class Downtime_Checks {
 		return home_url( '/' );
 	}
 
+	private static function host() {
+		return strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+	}
+
 	private static function site_name() {
 		$name = get_bloginfo( 'name' );
-		return '' !== $name ? $name : (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		return '' !== $name ? $name : self::host();
 	}
 
 	/**
-	 * WordPress-specific checks, keyed by a stable ID. Each is a full
-	 * monitor definition; DownTime fills in the rest from plan defaults.
+	 * WordPress Playground and the WordPress.org plugin preview run the site
+	 * inside the visitor's browser, under an address that changes every
+	 * session. DownTime can't reach it, and a monitor for it would be
+	 * orphaned as soon as the tab closes.
 	 */
-	public static function presets() {
-		$https   = 'https' === wp_parse_url( home_url( '/' ), PHP_URL_SCHEME );
-		$type    = $https ? 'https' : 'http';
-		$name    = self::site_name();
-		$presets = array(
-			'login' => array(
-				'label'   => __( 'Login page', 'downtime-uptime-monitoring' ),
-				'help'    => __( 'wp-login.php answers, so you and your users can sign in.', 'downtime-uptime-monitoring' ),
-				'monitor' => array(
+	public static function is_preview_site() {
+		return (bool) preg_match( '/(^|\.)(playground|wpsandbox)\.wordpress\.net$/', self::host() );
+	}
+
+	/**
+	 * Every check the plugin offers, keyed by a stable ID. `monitor` is the
+	 * full definition sent to DownTime; `alert` is the email alert threshold
+	 * and the option that remembers the rule, for the checks that alert.
+	 * Only the heartbeat is offered on a site DownTime can't reach.
+	 */
+	public static function checks() {
+		$name   = self::site_name();
+		$checks = array();
+		if ( Downtime_Admin::is_public_site() ) {
+			$https = 'https' === wp_parse_url( home_url( '/' ), PHP_URL_SCHEME );
+			$type  = $https ? 'https' : 'http';
+			$host  = self::host();
+
+			$checks['home']  = array(
+				'label'       => __( 'Homepage', 'downtime-uptime-monitoring' ),
+				'help'        => __( 'The site answers. Emails you when it goes down and when it recovers.', 'downtime-uptime-monitoring' ),
+				'recommended' => true,
+				'alert'       => array( 2, Downtime_Admin::OPTION_ALERT_ID ),
+				'option'      => Downtime_Admin::OPTION_MONITOR_ID,
+				'monitor'     => array(
+					'name'     => $name,
+					'url'      => home_url( '/' ),
+					'type'     => $type,
+					// 300s is the smallest interval every plan allows (Core's minimum).
+					'interval' => 300,
+				),
+			);
+			$checks['login'] = array(
+				'label'       => __( 'Login page', 'downtime-uptime-monitoring' ),
+				'help'        => __( 'wp-login.php answers, so you and your users can sign in.', 'downtime-uptime-monitoring' ),
+				'recommended' => true,
+				'monitor'     => array(
 					/* translators: %s: site name */
 					'name'          => sprintf( __( '%s: login page', 'downtime-uptime-monitoring' ), $name ),
 					'url'           => wp_login_url(),
@@ -56,11 +93,12 @@ class Downtime_Checks {
 					'expected_code' => 200,
 					'interval'      => 300,
 				),
-			),
-			'rest'  => array(
-				'label'   => __( 'REST API', 'downtime-uptime-monitoring' ),
-				'help'    => __( '/wp-json/ answers. The block editor, many plugins and mobile apps depend on it.', 'downtime-uptime-monitoring' ),
-				'monitor' => array(
+			);
+			$checks['rest']  = array(
+				'label'       => __( 'REST API', 'downtime-uptime-monitoring' ),
+				'help'        => __( '/wp-json/ answers. The block editor, many plugins and mobile apps depend on it.', 'downtime-uptime-monitoring' ),
+				'recommended' => true,
+				'monitor'     => array(
 					/* translators: %s: site name */
 					'name'          => sprintf( __( '%s: REST API', 'downtime-uptime-monitoring' ), $name ),
 					'url'           => get_rest_url(),
@@ -68,44 +106,141 @@ class Downtime_Checks {
 					'expected_code' => 200,
 					'interval'      => 300,
 				),
+			);
+			if ( get_option( 'blog_public' ) && function_exists( 'get_sitemap_url' ) && get_sitemap_url( 'index' ) ) {
+				$checks['sitemap'] = array(
+					'label'       => __( 'XML sitemap', 'downtime-uptime-monitoring' ),
+					'help'        => __( 'The sitemap search engines read is reachable.', 'downtime-uptime-monitoring' ),
+					'recommended' => true,
+					'monitor'     => array(
+						/* translators: %s: site name */
+						'name'          => sprintf( __( '%s: sitemap', 'downtime-uptime-monitoring' ), $name ),
+						'url'           => get_sitemap_url( 'index' ),
+						'type'          => $type,
+						'expected_code' => 200,
+						'interval'      => 3600,
+					),
+				);
+			}
+			if ( $https ) {
+				$checks['tls'] = array(
+					'label'       => __( 'TLS certificate', 'downtime-uptime-monitoring' ),
+					'help'        => __( 'Emails you 14 days before the HTTPS certificate expires.', 'downtime-uptime-monitoring' ),
+					'recommended' => true,
+					'alert'       => array( 1, self::OPTION_TLS_ALERT ),
+					'monitor'     => array(
+						/* translators: %s: site name */
+						'name'                       => sprintf( __( '%s: TLS certificate', 'downtime-uptime-monitoring' ), $name ),
+						'url'                        => home_url( '/' ),
+						'type'                       => 'tls',
+						'cert_expiry_threshold_days' => 14,
+						'interval'                   => 3600,
+					),
+				);
+			}
+			$checks['dns'] = array(
+				'label'       => __( 'DNS', 'downtime-uptime-monitoring' ),
+				'help'        => __( 'The domain name still resolves, e.g. after a registrar or DNS host change.', 'downtime-uptime-monitoring' ),
+				'recommended' => true,
+				'monitor'     => array(
+					/* translators: %s: site name */
+					'name'     => sprintf( __( '%s: DNS', 'downtime-uptime-monitoring' ), $name ),
+					'url'      => $host,
+					'type'     => 'dns',
+					'interval' => 600,
+				),
+			);
+			$port          = $https ? 443 : 80;
+			$checks['tcp'] = array(
+				/* translators: %d: port number */
+				'label'       => sprintf( __( 'Server port %d', 'downtime-uptime-monitoring' ), $port ),
+				'help'        => __( 'The web server accepts connections. Tells a server outage apart from a WordPress error.', 'downtime-uptime-monitoring' ),
+				'recommended' => false,
+				'monitor'     => array(
+					/* translators: %s: site name */
+					'name'     => sprintf( __( '%s: server port', 'downtime-uptime-monitoring' ), $name ),
+					'url'      => $host,
+					'type'     => 'tcp',
+					'port'     => $port,
+					'interval' => 300,
+				),
+			);
+			$checks['ping'] = array(
+				'label'       => __( 'Ping', 'downtime-uptime-monitoring' ),
+				'help'        => __( 'The server answers ping. Many hosts and CDNs block ping, so only add it if yours allows it.', 'downtime-uptime-monitoring' ),
+				'recommended' => false,
+				'monitor'     => array(
+					/* translators: %s: site name */
+					'name'     => sprintf( __( '%s: ping', 'downtime-uptime-monitoring' ), $name ),
+					'url'      => $host,
+					'type'     => 'ping',
+					'interval' => 300,
+				),
+			);
+		}
+		$checks['heartbeat'] = array(
+			'label'       => __( 'WP-Cron', 'downtime-uptime-monitoring' ),
+			'help'        => __( 'Scheduled posts, backups and updates keep running. This site pings DownTime every hour; you get an email if pings stop for 90 minutes. WP-Cron only runs when the site gets visits, so on a very quiet site, run it from a real system cron.', 'downtime-uptime-monitoring' ),
+			'recommended' => true,
+			'alert'       => array( 1, Downtime_Admin::OPTION_HB_ALERT ),
+			'monitor'     => array(
+				'name'     => $name . ' WP-Cron',
+				'type'     => 'heartbeat',
+				'interval' => Downtime_Heartbeat::INTERVAL,
 			),
 		);
-		if ( get_option( 'blog_public' ) && function_exists( 'get_sitemap_url' ) && get_sitemap_url( 'index' ) ) {
-			$presets['sitemap'] = array(
-				'label'   => __( 'XML sitemap', 'downtime-uptime-monitoring' ),
-				'help'    => __( 'The sitemap search engines read is reachable.', 'downtime-uptime-monitoring' ),
-				'monitor' => array(
-					/* translators: %s: site name */
-					'name'          => sprintf( __( '%s: sitemap', 'downtime-uptime-monitoring' ), $name ),
-					'url'           => get_sitemap_url( 'index' ),
-					'type'          => $type,
-					'expected_code' => 200,
-					'interval'      => 3600,
-				),
-			);
-		}
-		if ( $https ) {
-			$presets['tls'] = array(
-				'label'   => __( 'TLS certificate', 'downtime-uptime-monitoring' ),
-				'help'    => __( 'Warns you 14 days before the HTTPS certificate expires.', 'downtime-uptime-monitoring' ),
-				'monitor' => array(
-					/* translators: %s: site name */
-					'name'                       => sprintf( __( '%s: TLS certificate', 'downtime-uptime-monitoring' ), $name ),
-					'url'                        => home_url( '/' ),
-					'type'                       => 'tls',
-					'cert_expiry_threshold_days' => 14,
-					'interval'                   => 3600,
-				),
-			);
-		}
-		return $presets;
+		return $checks;
 	}
 
-	/** The account monitor that already covers a preset, if any. */
-	private static function find_preset( $preset, $monitors ) {
-		$want = $preset['monitor'];
+	/** What a check probes, normalised so equivalent monitors compare equal. */
+	private static function target( $type, $url, $port ) {
+		$url = trim( (string) $url );
+		if ( 'http' === $type || 'https' === $type ) {
+			$parts = wp_parse_url( false === strpos( $url, '://' ) ? $type . '://' . $url : $url );
+			$host  = strtolower( (string) ( $parts['host'] ?? '' ) );
+			$path  = untrailingslashit( '/' . ltrim( (string) ( $parts['path'] ?? '' ), '/' ) );
+			$query = isset( $parts['query'] ) ? '?' . $parts['query'] : '';
+			return $host . $path . $query;
+		}
+		$host = false === strpos( $url, '://' ) ? $url : (string) wp_parse_url( $url, PHP_URL_HOST );
+		$host = strtolower( trim( (string) preg_replace( '#[/:].*$#', '', $host ), '[]' ) );
+		return 'tcp' === $type ? $host . ':' . (int) $port : $host;
+	}
+
+	/**
+	 * The account monitor that already does what a check would, if any:
+	 * same kind of probe against the same target, wherever it was created
+	 * (this site, an earlier install of it, or the dashboard). HTTP and
+	 * HTTPS count as the same kind. A heartbeat has no target, so it is the
+	 * one this site pings, else one this site created, else one with this
+	 * site's heartbeat name (e.g. from an earlier install or preview).
+	 */
+	public static function find_existing( $check, $monitors ) {
+		$want = $check['monitor'];
+		if ( 'heartbeat' === $want['type'] ) {
+			$by_name = null;
+			foreach ( $monitors as $m ) {
+				if ( empty( $m['id'] ) || 'heartbeat' !== ( $m['type'] ?? '' ) ) {
+					continue;
+				}
+				if ( Downtime_Heartbeat::monitor_id() === $m['id'] || self::site() === ( $m['integrationSite'] ?? '' ) ) {
+					return $m;
+				}
+				if ( ! $by_name && $want['name'] === ( $m['name'] ?? '' ) ) {
+					$by_name = $m;
+				}
+			}
+			return $by_name;
+		}
+		$web    = array( 'http', 'https' );
+		$target = self::target( $want['type'], $want['url'], $want['port'] ?? 0 );
 		foreach ( $monitors as $m ) {
-			if ( ( $m['type'] ?? '' ) === $want['type'] && untrailingslashit( (string) ( $m['url'] ?? '' ) ) === untrailingslashit( $want['url'] ) ) {
+			$type = (string) ( $m['type'] ?? '' );
+			if ( empty( $m['id'] ) ) {
+				continue;
+			}
+			$same_kind = $type === $want['type'] || ( in_array( $type, $web, true ) && in_array( $want['type'], $web, true ) );
+			if ( $same_kind && self::target( $want['type'], $m['url'] ?? '', $m['port'] ?? 0 ) === $target ) {
 				return $m;
 			}
 		}
@@ -113,18 +248,33 @@ class Downtime_Checks {
 	}
 
 	/**
+	 * Remember a check's monitor locally once it exists, whether this site
+	 * just created it or found it on the account: the homepage monitor is
+	 * the status page default, and the heartbeat is what WP-Cron pings.
+	 */
+	private static function adopt( $key, $check, $monitor_id ) {
+		if ( 'heartbeat' === $key ) {
+			if ( Downtime_Heartbeat::monitor_id() !== $monitor_id ) {
+				Downtime_Heartbeat::enable( $monitor_id );
+			}
+		} elseif ( ! empty( $check['option'] ) && get_option( $check['option'] ) !== $monitor_id ) {
+			update_option( $check['option'], $monitor_id, false );
+		}
+	}
+
+	/**
 	 * The account's monitors that belong to this site: created by this
 	 * site's key, pointing at this site, or the WP-Cron heartbeat.
 	 */
 	public static function site_monitors( $monitors ) {
-		$host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		$host = self::host();
 		$out  = array();
 		foreach ( $monitors as $m ) {
 			if ( empty( $m['id'] ) ) {
 				continue;
 			}
 			$mine   = self::site() === ( $m['integrationSite'] ?? '' );
-			$points = '' !== $host && strtolower( (string) wp_parse_url( (string) ( $m['url'] ?? '' ), PHP_URL_HOST ) ) === $host;
+			$points = '' !== $host && self::target( 'dns', $m['url'] ?? '', 0 ) === $host;
 			if ( $mine || $points || Downtime_Heartbeat::monitor_id() === $m['id'] ) {
 				$out[] = $m;
 			}
@@ -152,16 +302,30 @@ class Downtime_Checks {
 	public static function handle_add_checks() {
 		Downtime_Admin::require_admin( 'downtime_add_checks' );
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
-		$picked   = isset( $_POST['checks'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['checks'] ) ) : array();
-		$presets  = self::presets();
+		$picked = isset( $_POST['checks'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['checks'] ) ) : array();
+		self::add_checks( $picked );
+	}
+
+	/** Add the picked checks, reusing any the account already has. Redirects. */
+	public static function add_checks( $picked ) {
+		$checks   = self::checks();
 		$monitors = Downtime_Admin::list_monitors();
 		$added    = array();
+		$reused   = array();
+		$no_alert = array();
 		foreach ( $picked as $key ) {
-			if ( ! isset( $presets[ $key ] ) || self::find_preset( $presets[ $key ], $monitors ) ) {
+			if ( ! isset( $checks[ $key ] ) ) {
 				continue;
 			}
-			$result = Downtime_API::create_monitor( $presets[ $key ]['monitor'] );
-			if ( ! Downtime_API::ok( $result ) ) {
+			$check    = $checks[ $key ];
+			$existing = self::find_existing( $check, $monitors );
+			if ( $existing ) {
+				self::adopt( $key, $check, sanitize_text_field( $existing['id'] ) );
+				$reused[] = $check['label'];
+				continue;
+			}
+			$result = Downtime_API::create_monitor( $check['monitor'] );
+			if ( ! Downtime_API::ok( $result ) || empty( $result['body']['id'] ) ) {
 				$message = Downtime_API::error_message( $result );
 				if ( $added ) {
 					/* translators: 1: checks that were added, 2: error message */
@@ -169,13 +333,32 @@ class Downtime_Checks {
 				}
 				Downtime_Admin::done( 'error', $message );
 			}
-			$added[] = $presets[ $key ]['label'];
+			$monitor_id = sanitize_text_field( $result['body']['id'] );
+			self::adopt( $key, $check, $monitor_id );
+			// This site's key can't list alert rules, so a rule is only ever
+			// added along with a monitor this site just created.
+			if ( ! empty( $check['alert'] ) && ! Downtime_Admin::add_email_alert( $monitor_id, $check['alert'][1], $check['alert'][0] ) ) {
+				$no_alert[] = $check['label'];
+			}
+			$added[] = $check['label'];
 		}
-		if ( ! $added ) {
-			Downtime_Admin::done( 'warning', __( 'Pick at least one check that is not added yet.', 'downtime-uptime-monitoring' ) );
+		if ( ! $added && ! $reused ) {
+			Downtime_Admin::done( 'warning', __( 'Pick at least one check.', 'downtime-uptime-monitoring' ) );
 		}
-		/* translators: %s: comma-separated list of checks */
-		Downtime_Admin::done( 'success', sprintf( __( 'Added: %s. The first results appear within a few minutes.', 'downtime-uptime-monitoring' ), implode( ', ', $added ) ) );
+		$parts = array();
+		if ( $added ) {
+			/* translators: %s: comma-separated list of checks */
+			$parts[] = sprintf( __( 'Added: %s. The first results appear within a few minutes.', 'downtime-uptime-monitoring' ), implode( ', ', $added ) );
+		}
+		if ( $reused ) {
+			/* translators: %s: comma-separated list of checks */
+			$parts[] = sprintf( __( 'Already on your DownTime account, reused: %s.', 'downtime-uptime-monitoring' ), implode( ', ', $reused ) );
+		}
+		if ( $no_alert ) {
+			/* translators: %s: comma-separated list of checks */
+			$parts[] = sprintf( __( 'Email alerts could not be turned on for: %s. Add them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ), implode( ', ', $no_alert ) );
+		}
+		Downtime_Admin::done( $no_alert ? 'warning' : 'success', implode( ' ', $parts ) );
 	}
 
 	public static function handle_pause() {
@@ -297,20 +480,47 @@ class Downtime_Checks {
 
 	// --- Rendering ------------------------------------------------------------
 
-	/** Recommended checks not added yet, for a site DownTime can reach. */
-	public static function render_presets( $monitors ) {
-		$boxes = '';
-		foreach ( self::presets() as $key => $p ) {
-			if ( self::find_preset( $p, $monitors ) ) {
+	/**
+	 * The checklist. Checks the account already covers are listed as such
+	 * (the homepage one is remembered as this site's monitor); the rest are
+	 * offered with the recommended ones ticked. A heartbeat found only by
+	 * name isn't pinged until the admin asks, so it stays offered, with a
+	 * note that adding it reuses the existing monitor.
+	 */
+	public static function render_setup( $monitors ) {
+		if ( self::is_preview_site() ) {
+			echo '<div class="notice notice-info inline"><p>' . esc_html__( 'This is a temporary WordPress Playground site: it runs in your browser and its address changes every session, so DownTime can\'t check it. Install the plugin on your real site to monitor it. You can still try the WP-Cron heartbeat and the status page here.', 'downtime-uptime-monitoring' ) . '</p></div>';
+		} elseif ( ! Downtime_Admin::is_public_site() ) {
+			/* translators: %s: site URL */
+			echo '<p>' . esc_html( sprintf( __( '%s is a local or private address, so DownTime cannot reach it. Site checks become available once the site is on a public address.', 'downtime-uptime-monitoring' ), untrailingslashit( home_url( '/' ) ) ) ) . '</p>';
+		}
+		$rows    = '';
+		$covered = '';
+		foreach ( self::checks() as $key => $check ) {
+			$existing = self::find_existing( $check, $monitors );
+			$note     = '';
+			if ( $existing && 'heartbeat' === $key && Downtime_Heartbeat::monitor_id() !== $existing['id'] ) {
+				/* translators: %s: monitor name */
+				$note     = ' <em>' . esc_html( sprintf( __( 'Reuses your existing "%s" monitor.', 'downtime-uptime-monitoring' ), (string) ( $existing['name'] ?? '' ) ) ) . '</em>';
+				$existing = null;
+			}
+			if ( $existing ) {
+				if ( 'home' === $key ) {
+					self::adopt( $key, $check, sanitize_text_field( $existing['id'] ) );
+				}
+				$covered .= '<li><span class="dashicons dashicons-yes" style="color:#00a32a" aria-hidden="true"></span> <strong>' . esc_html( $check['label'] ) . '</strong> <span class="description">' . esc_html( (string) ( $existing['name'] ?? '' ) ) . '</span></li>';
 				continue;
 			}
-			$boxes .= '<label style="display:block;margin:4px 0"><input type="checkbox" name="checks[]" value="' . esc_attr( $key ) . '" checked> <strong>' . esc_html( $p['label'] ) . '</strong> <span class="description">' . esc_html( $p['help'] ) . '</span></label>';
+			$rows .= '<label style="display:block;margin:6px 0"><input type="checkbox" name="checks[]" value="' . esc_attr( $key ) . '"' . checked( $check['recommended'], true, false ) . '> <strong>' . esc_html( $check['label'] ) . '</strong> <span class="description">' . esc_html( $check['help'] ) . '</span>' . $note . '</label>';
 		}
-		if ( '' === $boxes ) {
+		if ( '' !== $covered ) {
+			echo '<p>' . esc_html__( 'Already monitored:', 'downtime-uptime-monitoring' ) . '</p><ul>' . $covered . '</ul>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts above.
+		}
+		if ( '' === $rows ) {
 			return;
 		}
-		echo '<h3>' . esc_html__( 'Recommended checks', 'downtime-uptime-monitoring' ) . '</h3>';
-		Downtime_Admin::form( 'downtime_add_checks', __( 'Add selected checks', 'downtime-uptime-monitoring' ), 'button', '<fieldset style="margin:0 0 8px">' . $boxes . '</fieldset>' );
+		echo '<p>' . esc_html( '' === $covered ? __( 'Pick what DownTime should watch. Checks your account already has are reused, never added twice.', 'downtime-uptime-monitoring' ) : __( 'Add more checks:', 'downtime-uptime-monitoring' ) ) . '</p>';
+		Downtime_Admin::form( 'downtime_add_checks', __( 'Add selected checks', 'downtime-uptime-monitoring' ), 'button button-primary', '<fieldset style="margin:0 0 8px">' . $rows . '</fieldset>' );
 	}
 
 	public static function render_table( $monitors ) {
@@ -326,8 +536,15 @@ class Downtime_Checks {
 		echo '<th></th></tr></thead><tbody>';
 		$confirm = esc_js( __( 'Delete this monitor and its history on DownTime?', 'downtime-uptime-monitoring' ) );
 		foreach ( $mine as $m ) {
-			$type   = (string) ( $m['type'] ?? '' );
-			$what   = 'heartbeat' === $type ? __( 'WP-Cron heartbeat', 'downtime-uptime-monitoring' ) : strtoupper( $type ) . ' ' . (string) ( $m['url'] ?? '' );
+			$type = (string) ( $m['type'] ?? '' );
+			$url  = (string) ( $m['url'] ?? '' );
+			if ( 'heartbeat' === $type ) {
+				$what = __( 'WP-Cron heartbeat', 'downtime-uptime-monitoring' );
+			} elseif ( 'tcp' === $type && ! empty( $m['port'] ) ) {
+				$what = 'TCP ' . $url . ':' . (int) $m['port'];
+			} else {
+				$what = strtoupper( $type ) . ' ' . $url;
+			}
 			$every  = isset( $m['interval'] ) ? (int) $m['interval'] : 0;
 			$active = ! empty( $m['active'] );
 			echo '<tr><td><strong>' . esc_html( (string) ( $m['name'] ?? $m['id'] ) ) . '</strong></td>';
