@@ -1,6 +1,7 @@
 <?php
 /**
- * Settings → DownTime: connect/disconnect, one-click "monitor this site",
+ * Settings → DownTime: connect/disconnect, one-click "monitor this site"
+ * (recommended checks and monitor management live in Downtime_Checks),
  * status page setup, and copy-paste embed snippets.
  *
  * Every state-changing action is an admin-post.php form protected by a
@@ -60,7 +61,7 @@ class Downtime_Admin {
 		return admin_url( 'admin-post.php?action=downtime_connect_callback' );
 	}
 
-	private static function require_admin( $nonce_action = null ) {
+	public static function require_admin( $nonce_action = null ) {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to do this.', 'downtime-uptime-monitoring' ), 403 );
 		}
@@ -70,7 +71,7 @@ class Downtime_Admin {
 	}
 
 	/** Redirect back to the settings page with a one-shot notice. */
-	private static function done( $type, $message ) {
+	public static function done( $type, $message ) {
 		Downtime_Widget::flush();
 		set_transient( 'downtime_notice_' . get_current_user_id(), array( $type, $message ), 60 );
 		wp_safe_redirect( self::page_url() );
@@ -288,7 +289,7 @@ class Downtime_Admin {
 		self::done( 'success', __( 'Status page saved.', 'downtime-uptime-monitoring' ) );
 	}
 
-	private static function is_uuid( $id ) {
+	public static function is_uuid( $id ) {
 		return (bool) preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id );
 	}
 
@@ -313,6 +314,15 @@ class Downtime_Admin {
 
 	// --- Rendering ------------------------------------------------------------
 
+	/** The account's monitors, fetched at most once per request. */
+	public static function list_monitors() {
+		static $monitors = null;
+		if ( null === $monitors ) {
+			$monitors = self::items( Downtime_API::list_monitors(), 'monitors' );
+		}
+		return $monitors;
+	}
+
 	/** Accept a bare JSON array or one wrapped as {"<key>": [...]}. */
 	private static function items( $result, $key ) {
 		if ( ! Downtime_API::ok( $result ) || ! is_array( $result['body'] ) ) {
@@ -325,8 +335,12 @@ class Downtime_Admin {
 		return array_values( array_filter( $body, 'is_array' ) );
 	}
 
-	private static function form( $action, $label, $class = 'button button-primary', $fields = '' ) {
-		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin-inline-end:8px">';
+	/**
+	 * A one-button admin-post form. $onsubmit, when given, is a JavaScript
+	 * expression the caller has already escaped (e.g. a confirm() prompt).
+	 */
+	public static function form( $action, $label, $class = 'button button-primary', $fields = '', $onsubmit = '' ) {
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin-inline-end:8px"' . ( '' !== $onsubmit ? ' onsubmit="' . esc_attr( $onsubmit ) . '"' : '' ) . '>';
 		echo '<input type="hidden" name="action" value="' . esc_attr( $action ) . '">';
 		wp_nonce_field( $action );
 		echo $fields; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts by callers.
@@ -374,7 +388,7 @@ class Downtime_Admin {
 		// Monitor.
 		echo '<h2>' . esc_html__( 'Monitoring', 'downtime-uptime-monitoring' ) . '</h2>';
 		$home     = untrailingslashit( home_url( '/' ) );
-		$monitors = self::items( Downtime_API::list_monitors(), 'monitors' );
+		$monitors = self::list_monitors();
 		$mine     = null;
 		foreach ( $monitors as $m ) {
 			if ( isset( $m['url'] ) && untrailingslashit( $m['url'] ) === $home ) {
@@ -402,6 +416,10 @@ class Downtime_Admin {
 			echo '<p>' . esc_html( sprintf( __( '%s is not monitored yet.', 'downtime-uptime-monitoring' ), $home ) ) . '</p>';
 			self::form( 'downtime_monitor_site', __( 'Monitor this site', 'downtime-uptime-monitoring' ) );
 		}
+		if ( $mine ) {
+			Downtime_Checks::render_presets( $monitors );
+		}
+		Downtime_Checks::render_table( $monitors );
 
 		// WP-Cron heartbeat.
 		echo '<h2>' . esc_html__( 'WP-Cron', 'downtime-uptime-monitoring' ) . '</h2>';
@@ -430,6 +448,7 @@ class Downtime_Admin {
 			echo '<p>' . esc_html__( 'Use the "DownTime Status" block, or one of these shortcodes:', 'downtime-uptime-monitoring' ) . '</p>';
 			echo '<p><code>[downtime_badge]</code> <code>[downtime_badge type="uptime"]</code> <code>[downtime_status]</code></p>';
 			self::form( 'downtime_use_status_page', __( 'Use a different status page', 'downtime-uptime-monitoring' ), 'button', '<input type="hidden" name="slug" value="">' );
+			Downtime_Checks::render_wp_page();
 		} else {
 			$pages = self::items( Downtime_API::list_status_pages(), 'status_pages' );
 			if ( $pages ) {

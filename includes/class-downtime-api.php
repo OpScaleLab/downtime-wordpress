@@ -133,6 +133,15 @@ class Downtime_API {
 		return self::request( 'POST', '/api/monitors', $monitor );
 	}
 
+	/** Replaces the whole definition; send every field to keep. */
+	public static function update_monitor( $id, $monitor ) {
+		return self::request( 'PUT', '/api/monitors/' . rawurlencode( $id ), $monitor );
+	}
+
+	public static function delete_monitor( $id ) {
+		return self::request( 'DELETE', '/api/monitors/' . rawurlencode( $id ) );
+	}
+
 	public static function list_status_pages() {
 		return self::request( 'GET', '/api/status-pages' );
 	}
