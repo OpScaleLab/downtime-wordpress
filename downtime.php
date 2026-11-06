@@ -32,6 +32,7 @@ require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-embed.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-admin.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-heartbeat.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-widget.php';
+require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-checks.php';
 
 // Bundled translations (languages/), used until translate.wordpress.org
 // ships a language pack for the locale, which then takes precedence.
@@ -48,6 +49,7 @@ Downtime_Embed::init();
 Downtime_Heartbeat::init();
 if ( is_admin() ) {
 	Downtime_Admin::init();
+	Downtime_Checks::init();
 	Downtime_Widget::init();
 }
 

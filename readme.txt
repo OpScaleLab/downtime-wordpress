@@ -16,19 +16,21 @@ DownTime checks your site around the clock and alerts you (email, Slack, Telegra
 
 * **One-click connect**: sign in or create a free DownTime account and approve this site. No API keys to copy.
 * **One-click monitoring**: start monitoring this site's home page, with email alerts when it goes down and when it recovers.
+* **Recommended checks**: add WordPress-specific checks with one click: the login page, the REST API, the XML sitemap and the HTTPS certificate's expiry.
+* **Manage monitors in wp-admin**: see this site's monitors, and pause, resume or delete the ones the plugin created.
 * **Dashboard widget**: current state, response time, certificate expiry, recent uptime and incidents, right in wp-admin.
 * **WP-Cron watch**: an optional hourly heartbeat, so you hear about it when scheduled posts, backups and updates stop running.
-* **Public status page**: publish one with the monitors you pick, or reuse one you already have, and embed it anywhere with the "DownTime Status" block or `[downtime_status]`.
+* **Public status page**: publish one with the monitors you pick, or reuse one you already have, and embed it anywhere with the "DownTime Status" block or `[downtime_status]`. One click publishes a "Status" page on your site with it.
 * **Status badges**: `[downtime_badge]` and `[downtime_badge type="uptime"]`.
 
-The plugin only gets a limited key: it can list and create monitors and status pages, read results and incidents, and turn on email alerts that go to your own account address, nothing else. It can't delete anything, change your team, or touch billing. Disconnecting revokes the key.
+The plugin only gets a limited key: it can list and create monitors and status pages, pause, edit or delete only the monitors this site created, read results and incidents, and turn on email alerts that go to your own account address, nothing else. It can't touch monitors made in the DownTime dashboard or by another site, change your team, or touch billing. Disconnecting revokes the key.
 
 == External services ==
 
 This plugin connects to the DownTime service at https://downtime.opscale.ir:
 
 * When you click **Connect**, your browser goes to DownTime to sign in and approve access. DownTime then sends this site a one-time code, which the plugin exchanges server-side for its key.
-* From the settings page, the plugin calls the DownTime API to show your account, create a monitor for this site's URL, turn on email alerts for it, and create a status page.
+* From the settings page, the plugin calls the DownTime API to show your account, create monitors for this site's URLs, pause, resume or delete them, turn on email alerts, and create a status page.
 * The dashboard widget reads this site's latest checks and incidents from the DownTime API (cached for five minutes).
 * If you turn on the WP-Cron watch, WP-Cron sends a heartbeat request to DownTime once an hour. It carries no site data, only the heartbeat monitor's ID in the URL.
 * The badge and status page embeds load images and a page from DownTime in your visitors' browsers.
@@ -43,6 +45,10 @@ No. All API calls are made from your server. Visitors only load public badges an
 
 Yes: pass `slug="your-page"` to either shortcode, or set it in the block's sidebar.
 
+= Why can't I pause or delete some monitors from wp-admin? =
+
+DownTime only lets this site change monitors this site created. Monitors made in the DownTime dashboard, by another site, or by a plugin version before 0.3.0 show a "Manage on DownTime" link instead.
+
 = Why does DownTime say WP-Cron is down when my site is fine? =
 
 WP-Cron only runs when someone visits the site. If the site gets no visits for over 90 minutes, no heartbeat is sent. Run WP-Cron from a real system cron (see "Hooking WP-Cron Into the System Task Scheduler" in the WordPress handbook) or stop watching WP-Cron on the settings page.
@@ -50,6 +56,9 @@ WP-Cron only runs when someone visits the site. If the site gets no visits for o
 == Changelog ==
 
 = 0.3.0 =
+* Recommended checks: one click adds monitors for the login page, the REST API, the XML sitemap and the TLS certificate (warns 14 days before expiry).
+* This site's monitors are listed on the settings page. Pause, resume or delete the ones the plugin created; the rest link to the DownTime dashboard. Needs DownTime 0.31.0 or later.
+* "Add a Status page to this site" publishes a Status page with the DownTime Status block.
 * Persian (fa_IR) translation bundled. Layout spacing now follows right-to-left languages.
 
 = 0.2.3 =
