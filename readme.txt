@@ -4,7 +4,7 @@ Tags: uptime, monitoring, status page, downtime, status badge
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,9 @@ WP-Cron only runs when someone visits the site. If the site gets no visits for o
 A Playground site runs in your browser, and its address changes every session, so DownTime can't reach it. Install the plugin on your real site to monitor it.
 
 == Changelog ==
+
+= 0.4.1 =
+* Bundled translations are loaded without load_plugin_textdomain(), and only until a translate.wordpress.org language pack is installed for the locale.
 
 = 0.4.0 =
 * One checklist sets up all of this site's monitoring at once: home page, login page, REST API, XML sitemap, TLS certificate, DNS, server port and ping (the last two off by default), and WP-Cron.
