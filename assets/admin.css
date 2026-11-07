@@ -1,0 +1,25 @@
+/* Settings → DownTime: on/off switches and status dots. */
+.downtime-checks { max-width: 1100px; }
+.downtime-checks td { vertical-align: middle; }
+.downtime-checks td:first-child { width: 45%; }
+.downtime-toggle-form { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 2px 8px 2px 0; }
+.downtime-row { display: flex; align-items: center; gap: 10px; max-width: 900px; }
+.downtime-toggle {
+	position: relative; width: 40px; height: 22px; padding: 0; border: 0; border-radius: 11px;
+	background: #8c8f94; cursor: pointer; flex: none; transition: background-color .15s;
+}
+.downtime-toggle.is-on { background: #2271b1; }
+.downtime-toggle:focus-visible { outline: 2px solid #2271b1; outline-offset: 2px; }
+.downtime-toggle[disabled] { opacity: .5; cursor: not-allowed; }
+.downtime-toggle-knob {
+	position: absolute; top: 3px; inset-inline-start: 3px; width: 16px; height: 16px;
+	border-radius: 50%; background: #fff; transition: inset-inline-start .15s;
+}
+.downtime-toggle.is-on .downtime-toggle-knob { inset-inline-start: 21px; }
+.downtime-content-text { width: 14em; }
+.downtime-remove { font-size: 12px; }
+.downtime-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #a7aaad; margin-inline-end: 4px; }
+.downtime-dot.is-up { background: #00a32a; }
+.downtime-dot.is-down { background: #d63638; }
+.downtime-dot.is-paused, .downtime-dot.is-off { background: #dcdcde; border: 1px solid #a7aaad; box-sizing: border-box; }
+@media (prefers-reduced-motion: reduce) { .downtime-toggle, .downtime-toggle-knob { transition: none; } }

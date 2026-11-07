@@ -1,9 +1,11 @@
 <?php
 /**
- * Dashboard widget: this site's current state, recent uptime and incidents.
+ * Dashboard widget and admin bar dot: this site's current state, recent
+ * uptime and incidents.
  *
  * Fetched server-side with the integration key and cached for five minutes
- * in a transient, so opening wp-admin doesn't call DownTime every time.
+ * in a transient, so opening wp-admin doesn't call DownTime every time. The
+ * admin bar on the front end only reads that cache, never calls DownTime.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,6 +20,93 @@ class Downtime_Widget {
 	public static function init() {
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'register' ) );
 		add_action( 'admin_post_downtime_widget_refresh', array( __CLASS__, 'handle_refresh' ) );
+		add_action( 'admin_bar_menu', array( __CLASS__, 'admin_bar' ), 100 );
+	}
+
+	/** This site's monitors: what the settings page last saw, else the ones the plugin tracks. */
+	private static function site_ids() {
+		$ids = (array) get_option( Downtime_Checks::OPTION_SITE_IDS, array() );
+		if ( ! $ids ) {
+			$ids = array( (string) get_option( Downtime_Admin::OPTION_MONITOR_ID, '' ), Downtime_Heartbeat::monitor_id() );
+		}
+		return array_values( array_filter( $ids, array( 'Downtime_Admin', 'is_uuid' ) ) );
+	}
+
+	/**
+	 * A check's error, short enough to show: a failed content condition
+	 * quotes the whole page body, so it is summarised instead.
+	 */
+	public static function short_error( $error ) {
+		$error = (string) $error;
+		if ( false !== strpos( $error, '[BODY]' ) ) {
+			return __( 'the expected text is not on the page', 'downtime-uptime-monitoring' );
+		}
+		$error = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $error ) ) );
+		return strlen( $error ) > 120 ? substr( $error, 0, 117 ) . '…' : $error;
+	}
+
+	/** Latest check result per monitor ID, for the settings page's status column. */
+	public static function latest_by_monitor() {
+		$out = array();
+		foreach ( self::data()['monitors'] as $m ) {
+			$out[ $m['id'] ] = $m['latest'];
+		}
+		return $out;
+	}
+
+	/**
+	 * Overall state: 'down' if any active monitor's latest check failed,
+	 * 'up' if all checked ones passed, else 'unknown'.
+	 */
+	private static function overall( $data ) {
+		$state = 'unknown';
+		foreach ( $data['monitors'] as $m ) {
+			if ( ! $m['active'] || ! $m['latest'] ) {
+				continue;
+			}
+			if ( 'ok' !== ( $m['latest']['status'] ?? '' ) ) {
+				return 'down';
+			}
+			$state = 'up';
+		}
+		return $state;
+	}
+
+	/** A coloured dot in the admin bar, linking to Settings → DownTime. */
+	public static function admin_bar( $bar ) {
+		if ( ! current_user_can( 'manage_options' ) || ! Downtime_API::is_connected() ) {
+			return;
+		}
+		if ( is_admin() ) {
+			$data = self::data();
+		} else {
+			$data = get_transient( self::CACHE );
+			if ( ! is_array( $data ) ) {
+				return;
+			}
+		}
+		if ( '' !== $data['error'] || ! $data['monitors'] ) {
+			return;
+		}
+		$state  = self::overall( $data );
+		$colors = array(
+			'up'      => '#00a32a',
+			'down'    => '#d63638',
+			'unknown' => '#a7aaad',
+		);
+		$labels = array(
+			'up'      => __( 'All up', 'downtime-uptime-monitoring' ),
+			'down'    => __( 'Something is down', 'downtime-uptime-monitoring' ),
+			'unknown' => __( 'Waiting for checks', 'downtime-uptime-monitoring' ),
+		);
+		$bar->add_node(
+			array(
+				'id'    => 'downtime',
+				'title' => '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' . esc_attr( $colors[ $state ] ) . ';margin-inline-end:6px;vertical-align:middle"></span>' . esc_html__( 'DownTime', 'downtime-uptime-monitoring' ),
+				'href'  => admin_url( 'options-general.php?page=' . Downtime_Admin::PAGE ),
+				'meta'  => array( 'title' => $labels[ $state ] ),
+			)
+		);
 	}
 
 	public static function register() {
@@ -47,7 +136,7 @@ class Downtime_Widget {
 		if ( is_array( $cached ) ) {
 			return $cached;
 		}
-		$ids = array_filter( array( (string) get_option( Downtime_Admin::OPTION_MONITOR_ID, '' ), Downtime_Heartbeat::monitor_id() ) );
+		$ids = self::site_ids();
 		$out = array(
 			'monitors'  => array(),
 			'incidents' => array(),
@@ -151,7 +240,7 @@ class Downtime_Widget {
 				$facts[] = sprintf( _n( '%1$s%% up over the last %2$d check', '%1$s%% up over the last %2$d checks', $m['checks'], 'downtime-uptime-monitoring' ), number_format_i18n( 100 * $m['ok'] / $m['checks'], 1 ), $m['checks'] );
 			}
 			if ( $latest && 'ok' !== ( $latest['status'] ?? '' ) && ! empty( $latest['error'] ) ) {
-				$facts[] = $latest['error'];
+				$facts[] = self::short_error( $latest['error'] );
 			}
 			if ( $facts ) {
 				echo '<p style="margin:0 0 10px;padding-inline-start:16px;color:#50575e">' . esc_html( implode( ' · ', array_filter( $facts ) ) ) . '</p>';
@@ -167,7 +256,7 @@ class Downtime_Widget {
 			echo '</ul>';
 		}
 
-		echo '<p style="margin-top:12px"><a href="' . esc_url( Downtime_API::base_url() . '/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open DownTime dashboard', 'downtime-uptime-monitoring' ) . '</a> · ';
+		echo '<p style="margin-top:12px"><a href="' . esc_url( Downtime_API::dashboard_url() ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open DownTime dashboard', 'downtime-uptime-monitoring' ) . '</a> · ';
 		echo '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=downtime_widget_refresh' ), 'downtime_widget_refresh' ) ) . '">' . esc_html__( 'Refresh', 'downtime-uptime-monitoring' ) . '</a></p>';
 	}
 }

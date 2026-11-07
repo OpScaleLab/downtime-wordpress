@@ -1,8 +1,8 @@
 <?php
 /**
- * Settings → DownTime: connect/disconnect (the monitoring checklist and
- * monitor management live in Downtime_Checks),
- * status page setup, and copy-paste embed snippets.
+ * Settings → DownTime: connect/disconnect, status page setup and
+ * copy-paste embed snippets. The monitoring switches live in
+ * Downtime_Checks, alerts in Downtime_Alerts.
  *
  * Every state-changing action is an admin-post.php form protected by a
  * WordPress nonce and the manage_options capability. Connect is the one
@@ -45,6 +45,7 @@ class Downtime_Admin {
 	public static function enqueue( $hook ) {
 		if ( 'settings_page_' . self::PAGE === $hook ) {
 			wp_enqueue_script( 'downtime-admin', DOWNTIME_PLUGIN_URL . 'assets/admin.js', array(), DOWNTIME_PLUGIN_VERSION, true );
+			wp_enqueue_style( 'downtime-admin', DOWNTIME_PLUGIN_URL . 'assets/admin.css', array(), DOWNTIME_PLUGIN_VERSION );
 		}
 	}
 
@@ -142,6 +143,9 @@ class Downtime_Admin {
 		delete_option( self::OPTION_ALERT_ID );
 		delete_option( self::OPTION_HB_ALERT );
 		delete_option( Downtime_Checks::OPTION_TLS_ALERT );
+		delete_option( Downtime_Checks::OPTION_SITE_IDS );
+		delete_option( Downtime_Checks::OPTION_PAUSED );
+		delete_transient( Downtime_Alerts::PAIRING . get_current_user_id() );
 		Downtime_Heartbeat::disable();
 		if ( ! Downtime_API::ok( $result ) ) {
 			self::done( 'warning', __( 'Disconnected here, but DownTime could not revoke the key. Revoke it under Settings → Integrations on DownTime.', 'downtime-uptime-monitoring' ) );
@@ -157,27 +161,14 @@ class Downtime_Admin {
 		Downtime_Checks::add_checks( array( 'home' ) );
 	}
 
-	/** Create an email alert rule for a monitor and remember its ID. */
-	public static function add_email_alert( $monitor_id, $option, $threshold ) {
-		$name   = sprintf( '%s (WordPress)', wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
-		$result = Downtime_API::create_email_alert( $monitor_id, $name, $threshold );
-		if ( ! Downtime_API::ok( $result ) || empty( $result['body']['id'] ) ) {
-			return false;
-		}
-		update_option( $option, sanitize_text_field( $result['body']['id'] ), false );
-		return true;
-	}
-
+	/** The pre-0.5.0 "Turn on email alerts" button, for a page left open across an update. */
 	public static function handle_email_alerts() {
 		self::require_admin( 'downtime_email_alerts' );
 		$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
-		if ( '' === $monitor_id ) {
-			self::done( 'error', __( 'Monitor this site first.', 'downtime-uptime-monitoring' ) );
+		if ( '' === $monitor_id || ! Downtime_Alerts::enable( $monitor_id, 2 ) ) {
+			self::done( 'error', __( 'Alerts could not be turned on. You can add them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ) );
 		}
-		if ( ! self::add_email_alert( $monitor_id, self::OPTION_ALERT_ID, 2 ) ) {
-			self::done( 'error', __( 'Email alerts could not be turned on. You can add them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ) );
-		}
-		self::done( 'success', __( 'Email alerts are on.', 'downtime-uptime-monitoring' ) );
+		self::done( 'success', __( 'Alerts are on for this check.', 'downtime-uptime-monitoring' ) );
 	}
 
 	// --- WP-Cron heartbeat ----------------------------------------------------
@@ -355,30 +346,17 @@ class Downtime_Admin {
 		// Monitoring.
 		echo '<h2>' . esc_html__( 'Monitoring', 'downtime-uptime-monitoring' ) . '</h2>';
 		$monitors = self::list_monitors();
-		Downtime_Checks::render_setup( $monitors );
-		if ( in_array( get_option( self::OPTION_MONITOR_ID ), wp_list_pluck( Downtime_Checks::site_monitors( $monitors ), 'id' ), true ) ) {
-			if ( get_option( self::OPTION_ALERT_ID ) ) {
-				echo '<p>' . esc_html__( 'Email alerts are on: DownTime emails your account address when the site goes down and when it recovers.', 'downtime-uptime-monitoring' ) . '</p>';
-			} else {
-				echo '<p>' . esc_html__( 'No email alerts set up from this site. If you already set up alerts in the DownTime dashboard, you can ignore this.', 'downtime-uptime-monitoring' ) . '</p>';
-				self::form( 'downtime_email_alerts', __( 'Turn on email alerts', 'downtime-uptime-monitoring' ), 'button' );
-			}
-		}
-		Downtime_Checks::render_table( $monitors );
-		echo '<p><a href="' . esc_url( Downtime_API::base_url() . '/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open DownTime dashboard', 'downtime-uptime-monitoring' ) . '</a></p>';
-
-		// WP-Cron heartbeat: added from the checklist above.
+		Downtime_Checks::render_panel( $monitors );
 		if ( '' !== Downtime_Heartbeat::monitor_id() ) {
-			echo '<h2>' . esc_html__( 'WP-Cron', 'downtime-uptime-monitoring' ) . '</h2>';
 			$next = wp_next_scheduled( Downtime_Heartbeat::HOOK );
-			echo '<p>' . esc_html__( 'Watched: this site pings DownTime every hour from WP-Cron, and DownTime emails you if pings stop for more than 90 minutes.', 'downtime-uptime-monitoring' );
 			if ( $next ) {
 				/* translators: %s: human-readable time until the next ping */
-				echo ' ' . esc_html( sprintf( __( 'Next ping in %s.', 'downtime-uptime-monitoring' ), human_time_diff( time(), $next ) ) );
+				echo '<p class="description">' . esc_html( sprintf( __( 'Next WP-Cron ping in %s.', 'downtime-uptime-monitoring' ), human_time_diff( time(), $next ) ) ) . '</p>';
 			}
-			echo '</p>';
-			self::form( 'downtime_heartbeat_off', __( 'Stop watching WP-Cron', 'downtime-uptime-monitoring' ), 'button' );
 		}
+		echo '<p><a href="' . esc_url( Downtime_API::dashboard_url() ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open DownTime dashboard', 'downtime-uptime-monitoring' ) . '</a></p>';
+
+		Downtime_Alerts::render();
 
 		// Status page.
 		echo '<h2>' . esc_html__( 'Status page', 'downtime-uptime-monitoring' ) . '</h2>';
