@@ -4,9 +4,10 @@
  *
  * Every call happens here, from PHP, with the key in the X-API-Key header (and as a Bearer token for proxies that drop custom headers).
  * The key never reaches a browser. It is an `integration`-scoped key
- * (DownTime gateway, services/gateway-go/scopes.go): it can list/create
- * monitors and status pages, read results and incidents, and create
- * email-only alert rules, nothing else.
+ * (DownTime gateway, services/gateway-go/scopes.go): it can list and
+ * create monitors and status pages, change only the monitors and alert
+ * rules this site created, read results and incidents, and open short
+ * maintenance windows, nothing else.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,6 +20,16 @@ class Downtime_API {
 
 	public static function base_url() {
 		return untrailingslashit( DOWNTIME_BASE_URL );
+	}
+
+	/**
+	 * The DownTime dashboard. /dashboard rather than /: it is the entry
+	 * DownTime serves without Cross-Origin-Opener-Policy, so the link also
+	 * opens from a sandboxed wp-admin (WordPress Playground), where a COOP
+	 * page fails with ERR_BLOCKED_BY_RESPONSE.
+	 */
+	public static function dashboard_url() {
+		return self::base_url() . '/dashboard';
 	}
 
 	public static function get_key() {
@@ -148,26 +159,5 @@ class Downtime_API {
 
 	public static function create_status_page( $page ) {
 		return self::request( 'POST', '/api/status-pages', $page );
-	}
-
-	/**
-	 * Turn on email alerts for a monitor. The integration key may only create
-	 * an email-only rule; DownTime sends it to the account owner's address.
-	 */
-	public static function create_email_alert( $monitor_id, $name, $threshold = 2 ) {
-		return self::request(
-			'POST',
-			'/api/rules',
-			array(
-				'name'            => $name,
-				'monitor_id'      => $monitor_id,
-				'condition'       => 'consecutive_failures',
-				// Default two failed checks in a row, so one network blip
-				// doesn't send an email.
-				'threshold'       => (int) $threshold,
-				'notify_channels' => array( 'email' ),
-				'active'          => true,
-			)
-		);
 	}
 }

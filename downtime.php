@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       DownTime Uptime Monitoring
  * Plugin URI:        https://downtime.opscale.ir
- * Description:       Connect your site to DownTime in one click: monitor its uptime and embed a live status badge or status page with a shortcode or block.
- * Version:           0.4.1
+ * Description:       Connect your site to DownTime in one click: switch on uptime, content, TLS, domain, DNS and WP-Cron checks, get alerts by email, Telegram, Bale or Slack, and embed a live status badge or status page.
+ * Version:           0.5.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            OpScale
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DOWNTIME_PLUGIN_VERSION', '0.4.1' );
+define( 'DOWNTIME_PLUGIN_VERSION', '0.5.0' );
 define( 'DOWNTIME_PLUGIN_FILE', __FILE__ );
 define( 'DOWNTIME_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DOWNTIME_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -33,6 +33,7 @@ require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-admin.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-heartbeat.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-widget.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-checks.php';
+require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-alerts.php';
 
 // Bundled translations (languages/), used until translate.wordpress.org
 // ships a language pack for the locale. A pack, once installed under
@@ -53,12 +54,14 @@ add_action(
 );
 
 Downtime_Embed::init();
-// Always: WP-Cron fires the ping on front-end requests too.
+// Always: WP-Cron fires the ping on front-end requests too, automatic
+// updates run from WP-Cron, and the admin bar shows on the front end.
 Downtime_Heartbeat::init();
+Downtime_Alerts::init();
+Downtime_Widget::init();
 if ( is_admin() ) {
 	Downtime_Admin::init();
 	Downtime_Checks::init();
-	Downtime_Widget::init();
 }
 
 // Deactivating stops the pings; reactivating resumes them if WP-Cron was watched.
