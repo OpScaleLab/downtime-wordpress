@@ -460,15 +460,15 @@ class Downtime_Checks {
 		return null;
 	}
 
-	private static function posted_id() {
-		// Nonce checked by the caller's require_admin().
-		$id = isset( $_POST['monitor_id'] ) ? sanitize_text_field( wp_unslash( $_POST['monitor_id'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	private static function posted_id( $nonce_action ) {
+		check_admin_referer( $nonce_action );
+		$id = isset( $_POST['monitor_id'] ) ? sanitize_text_field( wp_unslash( $_POST['monitor_id'] ) ) : '';
 		return Downtime_Admin::is_uuid( $id ) ? $id : '';
 	}
 
-	private static function posted_check() {
-		// Nonce checked by the caller's require_admin().
-		$key    = isset( $_POST['check'] ) ? sanitize_key( wp_unslash( $_POST['check'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	private static function posted_check( $nonce_action ) {
+		check_admin_referer( $nonce_action );
+		$key    = isset( $_POST['check'] ) ? sanitize_key( wp_unslash( $_POST['check'] ) ) : '';
 		$checks = self::checks();
 		if ( ! isset( $checks[ $key ] ) ) {
 			Downtime_Admin::done( 'error', __( 'That check is not available on this site.', 'downtime-uptime-monitoring' ) );
@@ -574,11 +574,11 @@ class Downtime_Checks {
 	}
 
 	public static function handle_check_on() {
-		Downtime_Admin::require_admin( 'downtime_check_on' );
-		$key = self::posted_check();
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_check_on' );
+		$key = self::posted_check( 'downtime_check_on' );
 		if ( isset( $_POST['content_text'] ) ) {
-			$text = self::sanitize_content_text( sanitize_text_field( wp_unslash( $_POST['content_text'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$text = self::sanitize_content_text( sanitize_text_field( wp_unslash( $_POST['content_text'] ) ) );
 			$err  = self::content_text_error( $text );
 			if ( $err ) {
 				Downtime_Admin::done( 'error', $err );
@@ -615,8 +615,8 @@ class Downtime_Checks {
 	}
 
 	public static function handle_preset() {
-		Downtime_Admin::require_admin( 'downtime_preset' );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_preset' );
 		$all    = isset( $_POST['preset'] ) && 'all' === sanitize_key( wp_unslash( $_POST['preset'] ) );
 		$picked = array();
 		foreach ( self::checks() as $key => $check ) {
@@ -632,16 +632,17 @@ class Downtime_Checks {
 
 	/** The pre-0.5.0 checklist form. */
 	public static function handle_add_checks() {
-		Downtime_Admin::require_admin( 'downtime_add_checks' );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_add_checks' );
 		$picked = isset( $_POST['checks'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['checks'] ) ) : array();
 		self::add_checks( $picked );
 	}
 
 	/** Off pauses the check's monitor: it keeps its history and comes back with On. */
 	public static function handle_check_off() {
-		Downtime_Admin::require_admin( 'downtime_check_off' );
-		$key      = self::posted_check();
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_check_off' );
+		$key      = self::posted_check( 'downtime_check_off' );
 		$checks   = self::checks();
 		$assigned = self::assign( $checks, Downtime_Admin::list_monitors() );
 		$m        = $assigned[ $key ];
@@ -670,8 +671,9 @@ class Downtime_Checks {
 
 	/** Remove deletes the check's monitor, history included. */
 	public static function handle_check_remove() {
-		Downtime_Admin::require_admin( 'downtime_check_remove' );
-		$key      = self::posted_check();
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_check_remove' );
+		$key      = self::posted_check( 'downtime_check_remove' );
 		$assigned = self::assign( self::checks(), Downtime_Admin::list_monitors() );
 		$m        = $assigned[ $key ];
 		if ( ! $m ) {
@@ -682,13 +684,15 @@ class Downtime_Checks {
 	}
 
 	public static function handle_pause() {
-		Downtime_Admin::require_admin( 'downtime_monitor_pause' );
-		self::set_active( false );
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_monitor_pause' );
+		self::set_active( false, 'downtime_monitor_pause' );
 	}
 
 	public static function handle_resume() {
-		Downtime_Admin::require_admin( 'downtime_monitor_resume' );
-		self::set_active( true );
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_monitor_resume' );
+		self::set_active( true, 'downtime_monitor_resume' );
 	}
 
 	/**
@@ -724,8 +728,8 @@ class Downtime_Checks {
 		return Downtime_API::update_monitor( $m['id'], $body );
 	}
 
-	private static function set_active( $active ) {
-		$m = self::find( self::posted_id() );
+	private static function set_active( $active, $nonce_action ) {
+		$m = self::find( self::posted_id( $nonce_action ) );
 		if ( ! $m ) {
 			Downtime_Admin::done( 'error', __( 'That monitor no longer exists on DownTime.', 'downtime-uptime-monitoring' ) );
 		}
@@ -737,8 +741,9 @@ class Downtime_Checks {
 	}
 
 	public static function handle_delete() {
-		Downtime_Admin::require_admin( 'downtime_monitor_delete' );
-		$id = self::posted_id();
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_monitor_delete' );
+		$id = self::posted_id( 'downtime_monitor_delete' );
 		if ( '' === $id ) {
 			Downtime_Admin::done( 'error', __( 'That monitor no longer exists on DownTime.', 'downtime-uptime-monitoring' ) );
 		}
@@ -770,7 +775,8 @@ class Downtime_Checks {
 	}
 
 	public static function handle_wp_status_page() {
-		Downtime_Admin::require_admin( 'downtime_wp_status_page' );
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_wp_status_page' );
 		if ( '' === Downtime_Embed::default_slug() ) {
 			Downtime_Admin::done( 'error', __( 'Create or pick a DownTime status page first.', 'downtime-uptime-monitoring' ) );
 		}

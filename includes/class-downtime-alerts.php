@@ -133,9 +133,9 @@ class Downtime_Alerts {
 		return Downtime_API::ok( $result );
 	}
 
-	private static function posted_monitor() {
-		// Nonce checked by the caller's require_admin().
-		$id = isset( $_POST['monitor_id'] ) ? sanitize_text_field( wp_unslash( $_POST['monitor_id'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	private static function posted_monitor( $nonce_action ) {
+		check_admin_referer( $nonce_action );
+		$id = isset( $_POST['monitor_id'] ) ? sanitize_text_field( wp_unslash( $_POST['monitor_id'] ) ) : '';
 		if ( ! Downtime_Admin::is_uuid( $id ) ) {
 			Downtime_Admin::done( 'error', __( 'That monitor no longer exists on DownTime.', 'downtime-uptime-monitoring' ) );
 		}
@@ -143,9 +143,10 @@ class Downtime_Alerts {
 	}
 
 	public static function handle_alert_on() {
-		Downtime_Admin::require_admin( 'downtime_alert_on' );
-		$id        = self::posted_monitor();
-		$threshold = isset( $_POST['threshold'] ) ? absint( wp_unslash( $_POST['threshold'] ) ) : 2; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_alert_on' );
+		$id        = self::posted_monitor( 'downtime_alert_on' );
+		$threshold = isset( $_POST['threshold'] ) ? absint( wp_unslash( $_POST['threshold'] ) ) : 2;
 		if ( ! self::enable( $id, $threshold ) ) {
 			Downtime_Admin::done( 'error', __( 'Alerts could not be turned on. You can add them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ) );
 		}
@@ -153,8 +154,9 @@ class Downtime_Alerts {
 	}
 
 	public static function handle_alert_off() {
-		Downtime_Admin::require_admin( 'downtime_alert_off' );
-		if ( ! self::disable( self::posted_monitor() ) ) {
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_alert_off' );
+		if ( ! self::disable( self::posted_monitor( 'downtime_alert_off' ) ) ) {
 			Downtime_Admin::done( 'error', __( 'Alerts could not be turned off. Change them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ) );
 		}
 		Downtime_Admin::done( 'success', __( 'Alerts are off for this check. It keeps being monitored.', 'downtime-uptime-monitoring' ) );
@@ -193,8 +195,8 @@ class Downtime_Alerts {
 
 	/** Save the picked channels and apply them to every alert rule this site has. */
 	public static function handle_channels() {
-		Downtime_Admin::require_admin( 'downtime_alert_channels' );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_alert_channels' );
 		$picked = isset( $_POST['channels'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['channels'] ) ) : array();
 		$picked = array_values( array_intersect( self::CHANNELS, $picked ) );
 		if ( ! $picked ) {
@@ -222,8 +224,8 @@ class Downtime_Alerts {
 	 * (in a new tab), since the chat app must open it, not this admin.
 	 */
 	public static function handle_pair() {
-		Downtime_Admin::require_admin( 'downtime_pair' );
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_pair' );
 		$channel = isset( $_POST['channel'] ) ? sanitize_key( wp_unslash( $_POST['channel'] ) ) : '';
 		if ( ! in_array( $channel, array( 'telegram', 'bale' ), true ) || '' === self::org_id() ) {
 			Downtime_Admin::done( 'error', __( 'That channel can\'t be connected from here.', 'downtime-uptime-monitoring' ) );
@@ -251,7 +253,8 @@ class Downtime_Alerts {
 	}
 
 	public static function handle_silence() {
-		Downtime_Admin::require_admin( 'downtime_silence_updates' );
+		Downtime_Admin::require_admin();
+		check_admin_referer( 'downtime_silence_updates' );
 		$on = ! self::silence_enabled();
 		update_option( self::OPTION_SILENCE, $on ? '1' : '0', false );
 		Downtime_Admin::done( 'success', $on ? __( 'Alerts pause while WordPress updates.', 'downtime-uptime-monitoring' ) : __( 'Alerts no longer pause during updates.', 'downtime-uptime-monitoring' ) );

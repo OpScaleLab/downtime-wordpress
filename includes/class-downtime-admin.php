@@ -89,7 +89,8 @@ class Downtime_Admin {
 	 * ties the approval back to this admin.
 	 */
 	private static function connect_url() {
-		$state = bin2hex( random_bytes( 16 ) );
+		// A random single-use value plus a WordPress nonce for this admin.
+		$state = bin2hex( random_bytes( 16 ) ) . '-' . wp_create_nonce( 'downtime_connect' );
 		set_transient( self::STATE_TRANSIENT . get_current_user_id(), $state, 30 * MINUTE_IN_SECONDS );
 
 		return add_query_arg(
@@ -103,17 +104,24 @@ class Downtime_Admin {
 		);
 	}
 
+	/** The WordPress nonce part of a Connect `state` (after the last "-"). */
+	private static function state_nonce( $state ) {
+		$pos = strrpos( $state, '-' );
+		return false === $pos ? '' : substr( $state, $pos + 1 );
+	}
+
 	public static function handle_connect_callback() {
 		self::require_admin();
 		$transient = self::STATE_TRANSIENT . get_current_user_id();
 		$expected  = get_transient( $transient );
 		delete_transient( $transient ); // single-use, whatever happens next
 
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- protected by `state`.
-		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
+		if ( ! isset( $_GET['state'] ) || ! wp_verify_nonce( self::state_nonce( sanitize_text_field( wp_unslash( $_GET['state'] ) ) ), 'downtime_connect' ) ) {
+			self::done( 'error', __( 'Connection expired or was not started from this site. Please try again.', 'downtime-uptime-monitoring' ) );
+		}
+		$state = sanitize_text_field( wp_unslash( $_GET['state'] ) );
 		$code  = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
 		$error = isset( $_GET['error'] ) ? sanitize_text_field( wp_unslash( $_GET['error'] ) ) : '';
-		// phpcs:enable
 
 		if ( ! $expected || ! hash_equals( $expected, $state ) ) {
 			self::done( 'error', __( 'Connection expired or was not started from this site. Please try again.', 'downtime-uptime-monitoring' ) );
@@ -134,7 +142,8 @@ class Downtime_Admin {
 	}
 
 	public static function handle_disconnect() {
-		self::require_admin( 'downtime_disconnect' );
+		self::require_admin();
+		check_admin_referer( 'downtime_disconnect' );
 		// Best effort: revoke the key on DownTime, but always forget it here
 		// so a DownTime outage can't trap the site in a connected state.
 		$result = Downtime_API::revoke_self();
@@ -157,13 +166,15 @@ class Downtime_Admin {
 
 	/** The one-button form older versions rendered; same reuse logic as the checklist. */
 	public static function handle_monitor_site() {
-		self::require_admin( 'downtime_monitor_site' );
+		self::require_admin();
+		check_admin_referer( 'downtime_monitor_site' );
 		Downtime_Checks::add_checks( array( 'home' ) );
 	}
 
 	/** The pre-0.5.0 "Turn on email alerts" button, for a page left open across an update. */
 	public static function handle_email_alerts() {
-		self::require_admin( 'downtime_email_alerts' );
+		self::require_admin();
+		check_admin_referer( 'downtime_email_alerts' );
 		$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
 		if ( '' === $monitor_id || ! Downtime_Alerts::enable( $monitor_id, 2 ) ) {
 			self::done( 'error', __( 'Alerts could not be turned on. You can add them in the DownTime dashboard under Alerts.', 'downtime-uptime-monitoring' ) );
@@ -175,12 +186,14 @@ class Downtime_Admin {
 
 	/** Reuses the heartbeat this site (or an earlier install of it) already has. */
 	public static function handle_heartbeat_on() {
-		self::require_admin( 'downtime_heartbeat_on' );
+		self::require_admin();
+		check_admin_referer( 'downtime_heartbeat_on' );
 		Downtime_Checks::add_checks( array( 'heartbeat' ) );
 	}
 
 	public static function handle_heartbeat_off() {
-		self::require_admin( 'downtime_heartbeat_off' );
+		self::require_admin();
+		check_admin_referer( 'downtime_heartbeat_off' );
 		Downtime_Heartbeat::disable();
 		delete_option( self::OPTION_HB_ALERT );
 		self::done( 'success', __( 'Stopped sending WP-Cron heartbeats. Pause or delete the heartbeat monitor in the DownTime dashboard, or it will report WP-Cron as down.', 'downtime-uptime-monitoring' ) );
@@ -189,9 +202,9 @@ class Downtime_Admin {
 	// --- Status page ----------------------------------------------------------
 
 	public static function handle_status_page() {
-		self::require_admin( 'downtime_status_page' );
-		// Nonce checked by require_admin() above.
-		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( sanitize_text_field( wp_unslash( $_POST['slug'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::require_admin();
+		check_admin_referer( 'downtime_status_page' );
+		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( sanitize_text_field( wp_unslash( $_POST['slug'] ) ) ) : '';
 		if ( '' === $slug ) {
 			self::done( 'error', __( 'Slug must be 1–40 lowercase letters, digits or hyphens, starting and ending with a letter or digit.', 'downtime-uptime-monitoring' ) );
 		}
@@ -199,7 +212,6 @@ class Downtime_Admin {
 			'slug'  => $slug,
 			'title' => get_bloginfo( 'name' ) . ' ' . __( 'Status', 'downtime-uptime-monitoring' ),
 		);
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by require_admin() above.
 		$picked = isset( $_POST['monitor_ids'] ) ? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['monitor_ids'] ) ) : array();
 		$picked = array_values( array_filter( $picked, array( __CLASS__, 'is_uuid' ) ) );
 		if ( ! $picked ) {
@@ -233,8 +245,9 @@ class Downtime_Admin {
 
 	/** Embed an existing status page from the account instead of creating one. */
 	public static function handle_use_status_page() {
-		self::require_admin( 'downtime_use_status_page' );
-		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( sanitize_text_field( wp_unslash( $_POST['slug'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::require_admin();
+		check_admin_referer( 'downtime_use_status_page' );
+		$slug = isset( $_POST['slug'] ) ? Downtime_Embed::sanitize_slug( sanitize_text_field( wp_unslash( $_POST['slug'] ) ) ) : '';
 		if ( '' === $slug ) {
 			delete_option( Downtime_Embed::OPTION_SLUG );
 			self::done( 'success', __( 'Status page cleared. You can create or pick another one.', 'downtime-uptime-monitoring' ) );
