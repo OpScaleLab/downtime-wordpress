@@ -7,3 +7,8 @@
 /bin             export-ignore
 /docker-compose.yml export-ignore
 /README.md       export-ignore
+# Translations reach users through translate.wordpress.org language packs;
+# the Persian source stays here for importing there, not in the ZIP.
+/languages/*.po   export-ignore
+/languages/*.mo   export-ignore
+/languages/*.json export-ignore
