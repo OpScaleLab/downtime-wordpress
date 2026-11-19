@@ -1,10 +1,10 @@
 === DownTime Uptime Monitoring ===
 Contributors: alirezataleghani
-Tags: uptime, monitoring, status page, downtime, status badge
+Tags: uptime, monitoring, status page, site health, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.5.1
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,11 @@ Monitor your site's uptime with DownTime in one click, and show a live status ba
 DownTime checks your site around the clock and alerts you (email, Slack, Telegram, Bale, webhooks) the moment it goes down.
 
 * **One-click connect**: sign in or create a free DownTime account and approve this site. No API keys to copy.
-* **One switch per check**: the home page, the login page, the REST API, the XML sitemap, page content (catches a blank or defaced page that still answers "200 OK"), the HTTPS certificate's expiry, the domain registration's expiry, DNS, the server port, ping, and WP-Cron. Or turn on the essentials, or everything, in one click.
+* **One switch per check**: the home page, the login page, the REST API, the XML sitemap, page content (catches a blank or defaced page that still answers "200 OK"), the HTTPS certificate's expiry, the domain registration's expiry, DNS, the server port, ping, the network path, and WP-Cron. Or turn on the essentials, or everything, in one click.
+* **Site Health, watched for you**: every hour the site runs the Tools → Site Health tests and tells DownTime about critical problems, so you hear about an unsupported PHP version or a broken database without opening wp-admin. Recommendations never alert.
+* **WooCommerce**: checks that the shop, the checkout and the Store API answer, and from inside the store that a payment method is switched on, the checkout page exists and scheduled actions (order emails, renewals, webhooks) aren't piling up.
+* **Network path**: traces the route to your server like mtr and names the hop where packets get lost, so you can tell your host apart from a network problem on the way.
+* **Multisite**: network-activate it, connect each site from its own settings, and see every site's status under Network Admin → Settings → DownTime.
 * **No duplicates**: checks your DownTime account already has, from the dashboard or an earlier install, are reused instead of added again. Switching a check off pauses it and keeps its history.
 * **Alerts your way**: an "Alert me" switch on every check, sent by email, Telegram, Bale or Slack. Connect Telegram or Bale right from the settings page.
 * **Quiet updates**: alerts pause for 15 minutes when WordPress starts installing updates, so maintenance mode doesn't alert anyone.
@@ -37,6 +41,7 @@ This plugin connects to the DownTime service at https://downtime.opscale.ir:
 * When WordPress starts installing an update, the plugin asks DownTime to pause this site's alerts for 15 minutes (you can turn this off).
 * The dashboard widget reads this site's latest checks and incidents from the DownTime API (cached for five minutes).
 * If you turn on the WP-Cron watch, WP-Cron sends a heartbeat request to DownTime once an hour. It carries no site data, only the heartbeat monitor's ID in the URL.
+* If you turn on Site Health, WP-Cron sends a second hourly heartbeat. When the Site Health tests (or the WooCommerce checks) find a critical problem, the request also carries the names of those problems (for example "WooCommerce: no payment method is switched on"), so DownTime can show them in the alert. Nothing else about the site is sent.
 * The badge and status page embeds load images and a page from DownTime in your visitors' browsers.
 
 == Frequently Asked Questions ==
@@ -69,7 +74,21 @@ WP-Cron only runs when someone visits the site. If the site gets no visits for o
 
 A Playground site runs in your browser, and its address changes every session, so DownTime can't reach it. Install the plugin on your real site to monitor it.
 
+= Which Site Health results send an alert? =
+
+Only the ones Site Health marks critical. Recommendations, like a theme that could be removed, never alert. The tests that make network requests from your server (loopback, HTTPS, WordPress.org) aren't run hourly; check them on the Site Health screen.
+
+= Does it work on a multisite network? =
+
+Yes. Network-activate it, then connect each site from its own Settings → DownTime page. Network Admin → Settings → DownTime lists which sites are connected.
+
 == Changelog ==
+
+= 0.6.0 =
+* Site Health check: the Site Health tests run every hour and critical problems are reported to DownTime, with the problem in the alert.
+* WooCommerce: shop, checkout and Store API checks, plus payment methods, the checkout page and late scheduled actions checked from inside the store.
+* Network path check: traces the route to the server and names the hop that loses packets. Needs DownTime 0.33 or later.
+* Multisite: network activation schedules every site's checks, and Network Admin → Settings → DownTime shows each site's connection.
 
 = 0.5.1 =
 * Every settings action and the Connect return now verify a WordPress nonce in the handler itself.
