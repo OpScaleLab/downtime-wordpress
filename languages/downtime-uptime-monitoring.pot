@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 14:10+0100\n"
+"POT-Creation-Date: 2026-11-19 17:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,12 +18,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: includes/class-downtime-admin.php:42 includes/class-downtime-widget.php:105
+#: includes/class-downtime-admin.php:42 includes/class-downtime-network.php:59
+#: includes/class-downtime-network.php:60
+#: includes/class-downtime-network.php:71
+#: includes/class-downtime-network.php:75
+#: includes/class-downtime-widget.php:105
 #: includes/class-downtime-widget.php:116
 msgid "DownTime"
 msgstr ""
 
-#: includes/class-downtime-admin.php:53
+#: includes/class-downtime-admin.php:53 includes/class-downtime-network.php:95
 msgid "Settings"
 msgstr ""
 
@@ -31,289 +35,289 @@ msgstr ""
 msgid "You do not have permission to do this."
 msgstr ""
 
-#: includes/class-downtime-admin.php:119
+#: includes/class-downtime-admin.php:120 includes/class-downtime-admin.php:127
 msgid "Connection expired or was not started from this site. Please try again."
 msgstr ""
 
-#: includes/class-downtime-admin.php:122
+#: includes/class-downtime-admin.php:130
 msgid "Connection was cancelled on DownTime."
 msgstr ""
 
-#: includes/class-downtime-admin.php:125
+#: includes/class-downtime-admin.php:133
 msgid "DownTime did not return a connection code."
 msgstr ""
 
-#: includes/class-downtime-admin.php:133
+#: includes/class-downtime-admin.php:141
 msgid "Connected to DownTime."
 msgstr ""
 
-#: includes/class-downtime-admin.php:151
+#: includes/class-downtime-admin.php:160
 msgid "Disconnected here, but DownTime could not revoke the key. Revoke it under Settings → Integrations on DownTime."
 msgstr ""
 
-#: includes/class-downtime-admin.php:153
+#: includes/class-downtime-admin.php:162
 msgid "Disconnected from DownTime."
 msgstr ""
 
-#: includes/class-downtime-admin.php:169 includes/class-downtime-alerts.php:150
+#: includes/class-downtime-admin.php:180 includes/class-downtime-alerts.php:151
 msgid "Alerts could not be turned on. You can add them in the DownTime dashboard under Alerts."
 msgstr ""
 
-#: includes/class-downtime-admin.php:171 includes/class-downtime-alerts.php:152
+#: includes/class-downtime-admin.php:182 includes/class-downtime-alerts.php:153
 msgid "Alerts are on for this check."
 msgstr ""
 
-#: includes/class-downtime-admin.php:186
+#: includes/class-downtime-admin.php:199
 msgid "Stopped sending WP-Cron heartbeats. Pause or delete the heartbeat monitor in the DownTime dashboard, or it will report WP-Cron as down."
 msgstr ""
 
-#: includes/class-downtime-admin.php:196
+#: includes/class-downtime-admin.php:209
 msgid "Slug must be 1–40 lowercase letters, digits or hyphens, starting and ending with a letter or digit."
 msgstr ""
 
-#: includes/class-downtime-admin.php:200 includes/class-downtime-checks.php:786
-#: includes/class-downtime-checks.php:868
+#: includes/class-downtime-admin.php:213 includes/class-downtime-checks.php:902
+#: includes/class-downtime-checks.php:984
 msgid "Status"
 msgstr ""
 
-#: includes/class-downtime-admin.php:218
+#: includes/class-downtime-admin.php:230
 msgid "Pick at least one monitor to show on the status page."
 msgstr ""
 
 #. translators: %s: comma-separated slug suggestions
-#: includes/class-downtime-admin.php:226
+#: includes/class-downtime-admin.php:238
 #, php-format
 msgid "That address is taken. Try: %s"
 msgstr ""
 
-#: includes/class-downtime-admin.php:231 includes/class-downtime-admin.php:243
+#: includes/class-downtime-admin.php:243 includes/class-downtime-admin.php:256
 msgid "Status page saved."
 msgstr ""
 
-#: includes/class-downtime-admin.php:240
+#: includes/class-downtime-admin.php:253
 msgid "Status page cleared. You can create or pick another one."
 msgstr ""
 
-#: includes/class-downtime-admin.php:323
+#: includes/class-downtime-admin.php:336
 msgid "DownTime Uptime Monitoring"
 msgstr ""
 
-#: includes/class-downtime-admin.php:327
+#: includes/class-downtime-admin.php:340
 msgid "Connect this site to DownTime to monitor its uptime and show a live status badge or status page. You will sign in (or create a free account) on DownTime and approve access for this site."
 msgstr ""
 
-#: includes/class-downtime-admin.php:328
+#: includes/class-downtime-admin.php:341
 msgid "Connect to DownTime"
 msgstr ""
 
-#: includes/class-downtime-admin.php:334
+#: includes/class-downtime-admin.php:347
 msgid "Connection"
 msgstr ""
 
 #. translators: %s: DownTime account email
-#: includes/class-downtime-admin.php:338
+#: includes/class-downtime-admin.php:351
 #, php-format
 msgid "Connected as %s."
 msgstr ""
 
-#: includes/class-downtime-admin.php:340
+#: includes/class-downtime-admin.php:353
 msgid "The stored key is no longer valid (it may have been revoked on DownTime). Disconnect and connect again."
 msgstr ""
 
-#: includes/class-downtime-admin.php:344
+#: includes/class-downtime-admin.php:357
 msgid "Disconnect"
 msgstr ""
 
-#: includes/class-downtime-admin.php:347
+#: includes/class-downtime-admin.php:360
 msgid "Monitoring"
 msgstr ""
 
 #. translators: %s: human-readable time until the next ping
-#: includes/class-downtime-admin.php:354
+#: includes/class-downtime-admin.php:367
 #, php-format
 msgid "Next WP-Cron ping in %s."
 msgstr ""
 
-#: includes/class-downtime-admin.php:357 includes/class-downtime-alerts.php:298
+#: includes/class-downtime-admin.php:370 includes/class-downtime-alerts.php:301
 #: includes/class-downtime-widget.php:259
 msgid "Open DownTime dashboard"
 msgstr ""
 
-#: includes/class-downtime-admin.php:362
+#: includes/class-downtime-admin.php:375
 msgid "Status page"
 msgstr ""
 
-#: includes/class-downtime-admin.php:368
+#: includes/class-downtime-admin.php:381
 msgid "Embed it"
 msgstr ""
 
-#: includes/class-downtime-admin.php:369
+#: includes/class-downtime-admin.php:382
 msgid "Use the \"DownTime Status\" block, or one of these shortcodes:"
 msgstr ""
 
-#: includes/class-downtime-admin.php:371
+#: includes/class-downtime-admin.php:384
 msgid "Use a different status page"
 msgstr ""
 
-#: includes/class-downtime-admin.php:376
+#: includes/class-downtime-admin.php:389
 msgid "Use one of your existing status pages:"
 msgstr ""
 
-#: includes/class-downtime-admin.php:385
+#: includes/class-downtime-admin.php:398
 msgid "Use this page"
 msgstr ""
 
-#: includes/class-downtime-admin.php:386
+#: includes/class-downtime-admin.php:399
 msgid "Or create a new one:"
 msgstr ""
 
-#: includes/class-downtime-admin.php:390
+#: includes/class-downtime-admin.php:403
 msgid "Publish a public status page for this site. Its address will be:"
 msgstr ""
 
-#: includes/class-downtime-admin.php:405
+#: includes/class-downtime-admin.php:418
 msgid "Add a monitor first (above), then you can publish a status page for it."
 msgstr ""
 
-#: includes/class-downtime-admin.php:407
+#: includes/class-downtime-admin.php:420
 msgid "Monitors to show:"
 msgstr ""
 
-#: includes/class-downtime-admin.php:408
+#: includes/class-downtime-admin.php:421
 msgid "Create status page"
 msgstr ""
 
 #: includes/class-downtime-alerts.php:140
-#: includes/class-downtime-checks.php:730
-#: includes/class-downtime-checks.php:743
+#: includes/class-downtime-checks.php:841
+#: includes/class-downtime-checks.php:855
 msgid "That monitor no longer exists on DownTime."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:158
+#: includes/class-downtime-alerts.php:160
 msgid "Alerts could not be turned off. Change them in the DownTime dashboard under Alerts."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:160
+#: includes/class-downtime-alerts.php:162
 msgid "Alerts are off for this check. It keeps being monitored."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:201
+#: includes/class-downtime-alerts.php:203
 msgid "Pick at least one place to send alerts."
 msgstr ""
 
 #. translators: %d: number of alert rules
-#: includes/class-downtime-alerts.php:214
+#: includes/class-downtime-alerts.php:216
 #, php-format
 msgid "Saved, but %d alert could not be updated."
 msgid_plural "Saved, but %d alerts could not be updated."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-downtime-alerts.php:216
+#: includes/class-downtime-alerts.php:218
 msgid "Alert settings saved."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:229
+#: includes/class-downtime-alerts.php:231
 msgid "That channel can't be connected from here."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:244
+#: includes/class-downtime-alerts.php:246
 msgid "Almost done: open the link below and press Start in the chat."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:257
+#: includes/class-downtime-alerts.php:260
 msgid "Alerts pause while WordPress updates."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:257
+#: includes/class-downtime-alerts.php:260
 msgid "Alerts no longer pause during updates."
 msgstr ""
 
 #. translators: %s: site host name
-#: includes/class-downtime-alerts.php:282
+#: includes/class-downtime-alerts.php:285
 #, php-format
 msgid "WordPress update on %s"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:283
+#: includes/class-downtime-alerts.php:286
 msgid "Opened by the DownTime WordPress plugin while updates install."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:295
+#: includes/class-downtime-alerts.php:298
 msgid "Alerts"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:298
+#: includes/class-downtime-alerts.php:301
 msgid "Alerts go to your DownTime account email. Choose other channels in the DownTime dashboard under Settings."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:303
+#: includes/class-downtime-alerts.php:306
 msgid "While WordPress updates"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:306
+#: includes/class-downtime-alerts.php:309
 msgid "Pause alerts while WordPress updates"
 msgstr ""
 
 #. translators: %d: minutes
-#: includes/class-downtime-alerts.php:308
+#: includes/class-downtime-alerts.php:311
 #, php-format
 msgid "Pause this site's alerts for %d minutes when an update starts, so the brief maintenance mode doesn't alert anyone."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:318
+#: includes/class-downtime-alerts.php:321
 msgid "Email"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:330
+#: includes/class-downtime-alerts.php:333
 msgid "your DownTime account address"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:330
+#: includes/class-downtime-alerts.php:333
 msgid "connected"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:335
+#: includes/class-downtime-alerts.php:338
 msgid "Connect Slack in the DownTime dashboard"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:335
+#: includes/class-downtime-alerts.php:338
 msgid "(Settings → Notifications), then come back here."
-msgstr ""
-
-#. translators: %s: Telegram or Bale
-#: includes/class-downtime-alerts.php:339
-#, php-format
-msgid "Connect %s"
 msgstr ""
 
 #. translators: %s: Telegram or Bale
 #: includes/class-downtime-alerts.php:342
 #, php-format
+msgid "Connect %s"
+msgstr ""
+
+#. translators: %s: Telegram or Bale
+#: includes/class-downtime-alerts.php:345
+#, php-format
 msgid "Get alerts in a %s chat."
 msgstr ""
 
 #. translators: %s: Telegram or Bale
-#: includes/class-downtime-alerts.php:352
+#: includes/class-downtime-alerts.php:355
 #, php-format
 msgid "Open %s"
 msgstr ""
 
 #. translators: 1: Telegram or Bale, 2: one-time code
-#: includes/class-downtime-alerts.php:355
+#: includes/class-downtime-alerts.php:358
 #, php-format
 msgid "In %1$s, press Start (or send the code %2$s to the DownTime bot). The link works for 10 minutes. Then reload this page and tick it below."
 msgstr ""
 
-#: includes/class-downtime-alerts.php:359
+#: includes/class-downtime-alerts.php:362
 msgid "Where to send alerts from this site:"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:360
+#: includes/class-downtime-alerts.php:363
 msgid "Save"
 msgstr ""
 
-#: includes/class-downtime-alerts.php:362
+#: includes/class-downtime-alerts.php:365
 msgid "Add a channel:"
 msgstr ""
 
@@ -327,433 +331,522 @@ msgstr ""
 msgid "Unexpected response from DownTime (HTTP %d)."
 msgstr ""
 
-#: includes/class-downtime-checks.php:111
+#: includes/class-downtime-checks.php:113
 msgid "Homepage"
 msgstr ""
 
-#: includes/class-downtime-checks.php:112
+#: includes/class-downtime-checks.php:114
 msgid "The site answers."
 msgstr ""
 
-#: includes/class-downtime-checks.php:125
+#: includes/class-downtime-checks.php:127
 msgid "Login page"
 msgstr ""
 
-#: includes/class-downtime-checks.php:126
+#: includes/class-downtime-checks.php:128
 msgid "wp-login.php answers, so you and your users can sign in."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:131
+#: includes/class-downtime-checks.php:133
 #, php-format
 msgid "%s: login page"
 msgstr ""
 
-#: includes/class-downtime-checks.php:139
+#: includes/class-downtime-checks.php:141
 msgid "REST API"
 msgstr ""
 
-#: includes/class-downtime-checks.php:140
+#: includes/class-downtime-checks.php:142
 msgid "/wp-json/ answers. The block editor, many plugins and mobile apps depend on it."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:145
+#: includes/class-downtime-checks.php:147
 #, php-format
 msgid "%s: REST API"
 msgstr ""
 
-#: includes/class-downtime-checks.php:154
+#: includes/class-downtime-checks.php:156
 msgid "XML sitemap"
 msgstr ""
 
-#: includes/class-downtime-checks.php:155
+#: includes/class-downtime-checks.php:157
 msgid "The sitemap search engines read is reachable."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:160
+#: includes/class-downtime-checks.php:162
 #, php-format
 msgid "%s: sitemap"
 msgstr ""
 
-#: includes/class-downtime-checks.php:170
+#: includes/class-downtime-checks.php:172
 msgid "Page content"
 msgstr ""
 
-#: includes/class-downtime-checks.php:171
+#: includes/class-downtime-checks.php:173
 msgid "The homepage still shows this text. Catches a blank page, a broken theme or a defaced site that still answers \"200 OK\"."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:178
+#: includes/class-downtime-checks.php:180
 #, php-format
 msgid "%s: page content"
 msgstr ""
 
-#: includes/class-downtime-checks.php:188
+#: includes/class-downtime-checks.php:190
 msgid "TLS certificate"
 msgstr ""
 
-#: includes/class-downtime-checks.php:189
+#: includes/class-downtime-checks.php:191
 msgid "Warns you 14 days before the HTTPS certificate expires."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:194
+#: includes/class-downtime-checks.php:196
 #, php-format
 msgid "%s: TLS certificate"
 msgstr ""
 
-#: includes/class-downtime-checks.php:203
+#: includes/class-downtime-checks.php:205
 msgid "Domain expiry"
 msgstr ""
 
-#: includes/class-downtime-checks.php:204
+#: includes/class-downtime-checks.php:206
 msgid "Warns you 30 days before the domain registration runs out."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:210
+#: includes/class-downtime-checks.php:212
 #, php-format
 msgid "%s: domain expiry"
 msgstr ""
 
-#: includes/class-downtime-checks.php:219
+#: includes/class-downtime-checks.php:221
 msgid "DNS"
 msgstr ""
 
-#: includes/class-downtime-checks.php:220
+#: includes/class-downtime-checks.php:222
 msgid "The domain name still resolves, e.g. after a registrar or DNS host change."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:225
+#: includes/class-downtime-checks.php:227
 #, php-format
 msgid "%s: DNS"
 msgstr ""
 
 #. translators: %d: port number
-#: includes/class-downtime-checks.php:234
+#: includes/class-downtime-checks.php:236
 #, php-format
 msgid "Server port %d"
 msgstr ""
 
-#: includes/class-downtime-checks.php:235
+#: includes/class-downtime-checks.php:237
 msgid "The web server accepts connections. Tells a server outage apart from a WordPress error."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:240
+#: includes/class-downtime-checks.php:242
 #, php-format
 msgid "%s: server port"
 msgstr ""
 
-#: includes/class-downtime-checks.php:248
+#: includes/class-downtime-checks.php:250
 msgid "Ping"
 msgstr ""
 
-#: includes/class-downtime-checks.php:249
+#: includes/class-downtime-checks.php:251
 msgid "The server answers ping. Many hosts and CDNs block ping, so only turn it on if yours allows it."
 msgstr ""
 
 #. translators: %s: site name
-#: includes/class-downtime-checks.php:254
+#: includes/class-downtime-checks.php:256
 #, php-format
 msgid "%s: ping"
 msgstr ""
 
-#: includes/class-downtime-checks.php:262
+#: includes/class-downtime-checks.php:263
+msgid "Network path"
+msgstr ""
+
+#: includes/class-downtime-checks.php:264
+msgid "Traces the route to your server like mtr and names the hop where packets get lost, so you can tell your host apart from a network problem on the way. Needs ICMP, like Ping. Needs DownTime 0.33 or later."
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-downtime-checks.php:269
+#, php-format
+msgid "%s: network path"
+msgstr ""
+
+#: includes/class-downtime-checks.php:278
 msgid "WP-Cron"
 msgstr ""
 
-#: includes/class-downtime-checks.php:263
+#: includes/class-downtime-checks.php:279
 msgid "Scheduled posts, backups and updates keep running. This site pings DownTime every hour, and DownTime flags it if pings stop for 90 minutes. WP-Cron only runs when the site gets visits, so on a very quiet site, run it from a real system cron."
 msgstr ""
 
-#: includes/class-downtime-checks.php:474
+#: includes/class-downtime-checks.php:290
+msgid "Site Health and WooCommerce"
+msgstr ""
+
+#: includes/class-downtime-checks.php:290
+msgid "Site Health"
+msgstr ""
+
+#: includes/class-downtime-checks.php:292
+msgid "Every hour this site runs the Tools → Site Health tests and checks WooCommerce (a payment method is on, the checkout page exists, scheduled actions aren't piling up), and reports critical problems to DownTime."
+msgstr ""
+
+#: includes/class-downtime-checks.php:293
+msgid "Every hour this site runs the Tools → Site Health tests and reports critical problems to DownTime, e.g. an unsupported PHP version or a broken database. Recommendations never alert."
+msgstr ""
+
+#: includes/class-downtime-checks.php:319
+msgid "WooCommerce shop"
+msgstr ""
+
+#: includes/class-downtime-checks.php:320
+msgid "The shop page loads."
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-downtime-checks.php:325
+#, php-format
+msgid "%s: shop"
+msgstr ""
+
+#: includes/class-downtime-checks.php:336
+msgid "WooCommerce checkout"
+msgstr ""
+
+#: includes/class-downtime-checks.php:337
+msgid "The checkout page answers without an error, so customers can pay."
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-downtime-checks.php:342
+#, php-format
+msgid "%s: checkout"
+msgstr ""
+
+#: includes/class-downtime-checks.php:351
+msgid "WooCommerce Store API"
+msgstr ""
+
+#: includes/class-downtime-checks.php:352
+msgid "The Store API answers. Cart and checkout blocks and headless shops depend on it."
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-downtime-checks.php:357
+#, php-format
+msgid "%s: Store API"
+msgstr ""
+
+#: includes/class-downtime-checks.php:581
 msgid "That check is not available on this site."
 msgstr ""
 
 #. translators: %s: monitor name
-#: includes/class-downtime-checks.php:495
+#: includes/class-downtime-checks.php:602
 #, php-format
 msgid "\"%s\" is paused and was set up outside this site. Resume it in the DownTime dashboard."
 msgstr ""
 
 #. translators: %s: check name
-#: includes/class-downtime-checks.php:542
+#: includes/class-downtime-checks.php:649
 #, php-format
 msgid "%s: enter the text to look for first."
 msgstr ""
 
 #. translators: %s: comma-separated list of checks
-#: includes/class-downtime-checks.php:559
+#: includes/class-downtime-checks.php:666
 #, php-format
 msgid "Turned on: %s. The first results appear within a few minutes."
 msgstr ""
 
 #. translators: %s: comma-separated list of checks
-#: includes/class-downtime-checks.php:563
+#: includes/class-downtime-checks.php:670
 #, php-format
 msgid "Resumed: %s."
 msgstr ""
 
 #. translators: %s: comma-separated list of checks
-#: includes/class-downtime-checks.php:567
+#: includes/class-downtime-checks.php:674
 #, php-format
 msgid "Already on your DownTime account, reused: %s."
 msgstr ""
 
-#: includes/class-downtime-checks.php:571
+#: includes/class-downtime-checks.php:678
 msgid "Nothing to turn on."
 msgstr ""
 
-#: includes/class-downtime-checks.php:597
+#: includes/class-downtime-checks.php:704
 msgid "Enter at least 3 characters of text that always appears on your homepage."
 msgstr ""
 
 #. translators: %s: the text the admin entered
-#: includes/class-downtime-checks.php:612
+#: includes/class-downtime-checks.php:719
 #, php-format
 msgid "\"%s\" is not on your homepage right now (it must match the page source exactly, including capitals). Pick text that always appears, such as your site name or a footer line."
 msgstr ""
 
-#: includes/class-downtime-checks.php:649
+#: includes/class-downtime-checks.php:757
 msgid "That check is already off."
 msgstr ""
 
-#: includes/class-downtime-checks.php:654
-msgid "Stopped sending WP-Cron heartbeats. The heartbeat monitor was set up outside this site, so pause or delete it in the DownTime dashboard, or it will report WP-Cron as down."
+#: includes/class-downtime-checks.php:762
+msgid "Stopped sending heartbeats for this check. The heartbeat monitor was set up outside this site, so pause or delete it in the DownTime dashboard, or it will report the check as down."
 msgstr ""
 
-#: includes/class-downtime-checks.php:656
+#: includes/class-downtime-checks.php:764
 msgid "DownTime only lets this site change monitors it created. Pause this one in the DownTime dashboard."
 msgstr ""
 
 #. translators: %s: check name
-#: includes/class-downtime-checks.php:668
+#: includes/class-downtime-checks.php:776
 #, php-format
 msgid "%s is off. Its monitor is paused on DownTime and keeps its history; turn it back on any time."
 msgstr ""
 
-#: includes/class-downtime-checks.php:678
+#: includes/class-downtime-checks.php:787
 msgid "That check has no monitor to remove."
 msgstr ""
 
-#: includes/class-downtime-checks.php:736
+#: includes/class-downtime-checks.php:847
 msgid "Monitor resumed."
 msgstr ""
 
-#: includes/class-downtime-checks.php:736
+#: includes/class-downtime-checks.php:847
 msgid "Monitor paused. It keeps its history and alerts, and stops checking until you resume it."
 msgstr ""
 
-#: includes/class-downtime-checks.php:762
+#: includes/class-downtime-checks.php:877
 msgid "Monitor deleted, along with its history and alerts."
 msgstr ""
 
-#: includes/class-downtime-checks.php:767
+#: includes/class-downtime-checks.php:882
 msgid "DownTime only lets this site change monitors it created. Change this one in the DownTime dashboard."
 msgstr ""
 
-#: includes/class-downtime-checks.php:775
+#: includes/class-downtime-checks.php:891
 msgid "Create or pick a DownTime status page first."
 msgstr ""
 
-#: includes/class-downtime-checks.php:779
+#: includes/class-downtime-checks.php:895
 msgid "This site already has a status page."
 msgstr ""
 
-#: includes/class-downtime-checks.php:796
+#: includes/class-downtime-checks.php:912
 msgid "Published a Status page on this site. Add it to your menu under Appearance."
 msgstr ""
 
-#: includes/class-downtime-checks.php:825
+#: includes/class-downtime-checks.php:941
 msgid "Off"
 msgstr ""
 
-#: includes/class-downtime-checks.php:828
-#: includes/class-downtime-checks.php:976
+#: includes/class-downtime-checks.php:944
+#: includes/class-downtime-checks.php:1102
 #: includes/class-downtime-widget.php:215
 msgid "Paused"
 msgstr ""
 
-#: includes/class-downtime-checks.php:831
+#: includes/class-downtime-checks.php:947
 msgid "On, waiting for the first check"
 msgstr ""
 
-#: includes/class-downtime-checks.php:834
+#: includes/class-downtime-checks.php:950
 #: includes/class-downtime-widget.php:219
 msgid "Up"
 msgstr ""
 
-#: includes/class-downtime-checks.php:836
+#: includes/class-downtime-checks.php:952
 #: includes/class-downtime-widget.php:221
 msgid "Down"
 msgstr ""
 
-#: includes/class-downtime-checks.php:847
+#: includes/class-downtime-checks.php:963
 msgid "This is a temporary WordPress Playground site: it runs in your browser and its address changes every session, so DownTime can't check it. Install the plugin on your real site to monitor it. You can still try the WP-Cron heartbeat and the status page here."
 msgstr ""
 
 #. translators: %s: site URL
-#: includes/class-downtime-checks.php:850
+#: includes/class-downtime-checks.php:966
 #, php-format
 msgid "%s is a local or private address, so DownTime cannot reach it. Site checks become available once the site is on a public address."
 msgstr ""
 
-#: includes/class-downtime-checks.php:858
+#: includes/class-downtime-checks.php:974
 msgid "Switch on what DownTime should watch. Checks your account already has are reused, never added twice. Off pauses a check and keeps its history."
 msgstr ""
 
-#: includes/class-downtime-checks.php:861
+#: includes/class-downtime-checks.php:977
 msgid "Turn on the essentials"
 msgstr ""
 
-#: includes/class-downtime-checks.php:862
+#: includes/class-downtime-checks.php:978
 msgid "Turn on everything"
 msgstr ""
 
-#: includes/class-downtime-checks.php:867
+#: includes/class-downtime-checks.php:983
 msgid "Check"
 msgstr ""
 
-#: includes/class-downtime-checks.php:869
+#: includes/class-downtime-checks.php:985
 msgid "On"
 msgstr ""
 
-#: includes/class-downtime-checks.php:870
+#: includes/class-downtime-checks.php:986
 msgid "Alert me"
 msgstr ""
 
-#: includes/class-downtime-checks.php:872
-#: includes/class-downtime-checks.php:957
+#: includes/class-downtime-checks.php:988
+#: includes/class-downtime-checks.php:1083
 msgid "Delete this monitor and its history on DownTime?"
 msgstr ""
 
+#. translators: %s: list of problems
+#: includes/class-downtime-checks.php:1006
+#, php-format
+msgid "Last check found: %s"
+msgstr ""
+
+#. translators: %s: time ago, e.g. "5 mins"
+#: includes/class-downtime-checks.php:1009
+#, php-format
+msgid "Last check %s ago: no critical problems."
+msgstr ""
+
 #. translators: %s: monitor name
-#: includes/class-downtime-checks.php:888
+#: includes/class-downtime-checks.php:1014
 #, php-format
 msgid "Uses \"%s\", set up outside this site."
 msgstr ""
 
 #. translators: %s: check name
-#: includes/class-downtime-checks.php:896
+#: includes/class-downtime-checks.php:1022
 #, php-format
 msgid "Turn off %s"
 msgstr ""
 
-#: includes/class-downtime-checks.php:898
+#: includes/class-downtime-checks.php:1024
 msgid "Managed in DownTime"
 msgstr ""
 
-#: includes/class-downtime-checks.php:903
+#: includes/class-downtime-checks.php:1029
 msgid "Text to look for"
 msgstr ""
 
-#: includes/class-downtime-checks.php:904
+#: includes/class-downtime-checks.php:1030
 msgid "Text on your homepage"
 msgstr ""
 
 #. translators: %s: check name
-#: includes/class-downtime-checks.php:907
+#: includes/class-downtime-checks.php:1033
 #, php-format
 msgid "Turn on %s"
 msgstr ""
 
-#: includes/class-downtime-checks.php:910
+#: includes/class-downtime-checks.php:1036
 msgid "Remove"
 msgstr ""
 
-#: includes/class-downtime-checks.php:916
+#: includes/class-downtime-checks.php:1042
 msgid "In DownTime"
 msgstr ""
 
 #. translators: %s: check name
-#: includes/class-downtime-checks.php:922
+#: includes/class-downtime-checks.php:1048
 #, php-format
 msgid "Stop alerts for %s"
 msgstr ""
 
-#: includes/class-downtime-checks.php:922
+#: includes/class-downtime-checks.php:1048
 #, php-format
 msgid "Alert me about %s"
 msgstr ""
 
-#: includes/class-downtime-checks.php:928
+#: includes/class-downtime-checks.php:1054
 msgid "Alert me sends a message when the check fails and again when it recovers, to the places chosen under Alerts below. Alerts set up in the DownTime dashboard are not shown here and keep working."
 msgstr ""
 
-#: includes/class-downtime-checks.php:951
+#: includes/class-downtime-checks.php:1077
 msgid "Other monitors for this site"
 msgstr ""
 
-#: includes/class-downtime-checks.php:953
+#: includes/class-downtime-checks.php:1079
 msgid "Monitor"
 msgstr ""
 
-#: includes/class-downtime-checks.php:954
+#: includes/class-downtime-checks.php:1080
+#: includes/class-downtime-network.php:76
 msgid "Checks"
 msgstr ""
 
-#: includes/class-downtime-checks.php:955
+#: includes/class-downtime-checks.php:1081
 msgid "State"
 msgstr ""
 
-#: includes/class-downtime-checks.php:962
+#: includes/class-downtime-checks.php:1088
+msgid "Site Health heartbeat"
+msgstr ""
+
+#: includes/class-downtime-checks.php:1088
 msgid "WP-Cron heartbeat"
 msgstr ""
 
 #. translators: %s: human-readable interval, e.g. "5 mins"
-#: includes/class-downtime-checks.php:974
+#: includes/class-downtime-checks.php:1100
 #, php-format
 msgid "every %s"
 msgstr ""
 
-#: includes/class-downtime-checks.php:976
+#: includes/class-downtime-checks.php:1102
 msgid "Active"
 msgstr ""
 
-#: includes/class-downtime-checks.php:980
+#: includes/class-downtime-checks.php:1106
 msgid "Pause"
 msgstr ""
 
-#: includes/class-downtime-checks.php:982
+#: includes/class-downtime-checks.php:1108
 msgid "Resume"
 msgstr ""
 
-#: includes/class-downtime-checks.php:984
+#: includes/class-downtime-checks.php:1110
 msgid "Delete"
 msgstr ""
 
-#: includes/class-downtime-checks.php:986
+#: includes/class-downtime-checks.php:1112
 msgid "Manage on DownTime"
 msgstr ""
 
-#: includes/class-downtime-checks.php:995
+#: includes/class-downtime-checks.php:1121
 msgid "On this site"
 msgstr ""
 
 #. translators: %s: page title
-#: includes/class-downtime-checks.php:1000
+#: includes/class-downtime-checks.php:1126
 #, php-format
 msgid "Your status is shown on the \"%s\" page"
 msgstr ""
 
-#: includes/class-downtime-checks.php:1001
+#: includes/class-downtime-checks.php:1127
 msgid "View"
 msgstr ""
 
-#: includes/class-downtime-checks.php:1002
+#: includes/class-downtime-checks.php:1128
 msgid "Edit"
 msgstr ""
 
-#: includes/class-downtime-checks.php:1005
+#: includes/class-downtime-checks.php:1131
 msgid "Publish a \"Status\" page on this site that shows the status page above, so visitors can check it without leaving your site."
 msgstr ""
 
-#: includes/class-downtime-checks.php:1006
+#: includes/class-downtime-checks.php:1132
 msgid "Add a Status page to this site"
 msgstr ""
 
@@ -767,6 +860,44 @@ msgstr ""
 
 #: includes/class-downtime-embed.php:68 includes/class-downtime-embed.php:92
 msgid "Service status"
+msgstr ""
+
+#: includes/class-downtime-health.php:109
+msgid "WooCommerce: no payment method is switched on"
+msgstr ""
+
+#: includes/class-downtime-health.php:114
+msgid "WooCommerce: the checkout page is missing or not published"
+msgstr ""
+
+#. translators: %d: number of scheduled actions
+#: includes/class-downtime-health.php:129
+#, php-format
+msgid "WooCommerce: %d+ scheduled actions are over an hour late (order emails, renewals and webhooks wait on them)"
+msgstr ""
+
+#: includes/class-downtime-network.php:72
+msgid "Each site connects to DownTime on its own, from its Settings → DownTime page, and gets its own checks and status page. Sites you connect while signed in to the same DownTime account all show up in that account."
+msgstr ""
+
+#: includes/class-downtime-network.php:74
+msgid "Site"
+msgstr ""
+
+#: includes/class-downtime-network.php:87
+msgid "Plugin not active"
+msgstr ""
+
+#: includes/class-downtime-network.php:89
+msgid "Connected"
+msgstr ""
+
+#: includes/class-downtime-network.php:91
+msgid "Not connected"
+msgstr ""
+
+#: includes/class-downtime-network.php:95
+msgid "Connect"
 msgstr ""
 
 #: includes/class-downtime-widget.php:42
