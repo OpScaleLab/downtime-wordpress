@@ -23,3 +23,4 @@
 .downtime-dot.is-down { background: #d63638; }
 .downtime-dot.is-paused, .downtime-dot.is-off { background: #dcdcde; border: 1px solid #a7aaad; box-sizing: border-box; }
 @media (prefers-reduced-motion: reduce) { .downtime-toggle, .downtime-toggle-knob { transition: none; } }
+.downtime-keep { margin-inline-end: 8px; }

@@ -5,12 +5,9 @@
  * Each site in a network connects to DownTime on its own (Settings →
  * DownTime on that site): every site gets its own limited key, checks and
  * status page, all in the DownTime account of whoever approved it. This
- * class covers the network-wide parts:
- *
- * - network activation and deactivation start and stop every site's
- *   heartbeat schedules, not only the main site's;
- * - Network Admin → Settings → DownTime lists every site with whether it
- *   is connected and how many checks it has, linking to its settings.
+ * class adds Network Admin → Settings → DownTime, which lists every site
+ * with whether it is connected and how many checks it has, linking to its
+ * settings. Deleting the plugin cleans up every site (uninstall.php).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,32 +22,6 @@ class Downtime_Network {
 		if ( is_multisite() ) {
 			add_action( 'network_admin_menu', array( __CLASS__, 'menu' ) );
 		}
-	}
-
-	/** Run $callback on every site when network-wide, else on this one. */
-	public static function each_site( $network_wide, $callback ) {
-		if ( ! is_multisite() || ! $network_wide ) {
-			call_user_func( $callback );
-			return;
-		}
-		foreach ( get_sites(
-			array(
-				'fields' => 'ids',
-				'number' => 0,
-			)
-		) as $site_id ) {
-			switch_to_blog( $site_id );
-			call_user_func( $callback );
-			restore_current_blog();
-		}
-	}
-
-	public static function activate( $network_wide = false ) {
-		self::each_site( $network_wide, array( 'Downtime_Heartbeat', 'reschedule' ) );
-	}
-
-	public static function deactivate( $network_wide = false ) {
-		self::each_site( $network_wide, array( 'Downtime_Heartbeat', 'unschedule' ) );
 	}
 
 	public static function menu() {

@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       DownTime Uptime Monitoring
  * Plugin URI:        https://downtime.opscale.ir
- * Description:       Connect your site to DownTime in one click: switch on uptime, content, TLS, domain, DNS, network path, WP-Cron, Site Health and WooCommerce checks, get alerts by email, Telegram, Bale or Slack, and embed a live status badge or status page.
- * Version:           0.6.0
+ * Description:       Connect your site to DownTime in one click: switch on uptime, page content, HTTPS certificate, domain expiry, DNS, network path and WooCommerce checks, get alerts by email, Telegram, Bale or Slack, and embed a live status badge or status page.
+ * Version:           0.7.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            OpScale Solutions
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DOWNTIME_PLUGIN_VERSION', '0.6.0' );
+define( 'DOWNTIME_PLUGIN_VERSION', '0.7.0' );
 define( 'DOWNTIME_PLUGIN_FILE', __FILE__ );
 define( 'DOWNTIME_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DOWNTIME_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -31,17 +31,16 @@ if ( ! defined( 'DOWNTIME_BASE_URL' ) ) {
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-api.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-embed.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-admin.php';
-require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-heartbeat.php';
-require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-health.php';
+require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-cleanup.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-network.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-widget.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-checks.php';
 require_once DOWNTIME_PLUGIN_DIR . 'includes/class-downtime-alerts.php';
 
 Downtime_Embed::init();
-// Always: WP-Cron fires the ping on front-end requests too, automatic
-// updates run from WP-Cron, and the admin bar shows on the front end.
-Downtime_Heartbeat::init();
+// Always: automatic updates run from WP-Cron, and the admin bar shows on
+// the front end.
+Downtime_Cleanup::init();
 Downtime_Alerts::init();
 Downtime_Widget::init();
 Downtime_Network::init();
@@ -49,8 +48,3 @@ if ( is_admin() ) {
 	Downtime_Admin::init();
 	Downtime_Checks::init();
 }
-
-// Deactivating stops the pings; reactivating resumes the ones that were on.
-// Network (de)activation does it on every site of the network.
-register_deactivation_hook( __FILE__, array( 'Downtime_Network', 'deactivate' ) );
-register_activation_hook( __FILE__, array( 'Downtime_Network', 'activate' ) );

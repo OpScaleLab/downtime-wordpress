@@ -1,10 +1,10 @@
 === DownTime Uptime Monitoring ===
 Contributors: alirezataleghani
-Tags: uptime, monitoring, status page, site health, woocommerce
+Tags: uptime, monitoring, status page, ssl, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.6.0
+Stable tag: 0.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,24 +12,22 @@ Monitor your site's uptime with DownTime in one click, and show a live status ba
 
 == Description ==
 
-DownTime checks your site around the clock and alerts you (email, Slack, Telegram, Bale, webhooks) the moment it goes down.
+DownTime checks your site around the clock from outside, the way your visitors reach it, and alerts you (email, Slack, Telegram, Bale, webhooks) the moment it goes down. Nothing runs inside your site between checks: no cron jobs, no background pings, nothing that slows a page down.
 
 * **One-click connect**: sign in or create a free DownTime account and approve this site. No API keys to copy.
-* **One switch per check**: the home page, the login page, the REST API, the XML sitemap, page content (catches a blank or defaced page that still answers "200 OK"), the HTTPS certificate's expiry, the domain registration's expiry, DNS, the server port, ping, the network path, and WP-Cron. Or turn on the essentials, or everything, in one click.
-* **Site Health, watched for you**: every hour the site runs the Tools → Site Health tests and tells DownTime about critical problems, so you hear about an unsupported PHP version or a broken database without opening wp-admin. Recommendations never alert.
-* **WooCommerce**: checks that the shop, the checkout and the Store API answer, and from inside the store that a payment method is switched on, the checkout page exists and scheduled actions (order emails, renewals, webhooks) aren't piling up.
+* **One switch per check**: the home page, the login page, the REST API, the XML sitemap, page content (catches a blank or defaced page that still answers "200 OK"), the HTTPS certificate's expiry, the domain registration's expiry, DNS, the server port, ping, and the network path. Or turn on the essentials, or everything, in one click.
+* **WooCommerce**: checks that the shop, the checkout and the Store API answer.
 * **Network path**: traces the route to your server like mtr and names the hop where packets get lost, so you can tell your host apart from a network problem on the way.
 * **Multisite**: network-activate it, connect each site from its own settings, and see every site's status under Network Admin → Settings → DownTime.
 * **No duplicates**: checks your DownTime account already has, from the dashboard or an earlier install, are reused instead of added again. Switching a check off pauses it and keeps its history.
 * **Alerts your way**: an "Alert me" switch on every check, sent by email, Telegram, Bale or Slack. Connect Telegram or Bale right from the settings page.
 * **Quiet updates**: alerts pause for 15 minutes when WordPress starts installing updates, so maintenance mode doesn't alert anyone.
 * **Status at a glance**: a green or red dot in the admin bar, and a dashboard widget with current state, response time, certificate expiry, recent uptime and incidents.
-* **Dashboard widget**: current state, response time, certificate expiry, recent uptime and incidents, right in wp-admin.
-* **WP-Cron watch**: an hourly heartbeat, so you hear about it when scheduled posts, backups and updates stop running.
+* **Cleans up after itself**: Disconnect or delete the plugin and the checks it set up are deleted from DownTime too (Disconnect can keep them), its key is revoked and nothing is left in your database.
 * **Public status page**: publish one with the monitors you pick, or reuse one you already have, and embed it anywhere with the "DownTime Status" block or `[downtime_status]`. One click publishes a "Status" page on your site with it.
 * **Status badges**: `[downtime_badge]` and `[downtime_badge type="uptime"]`.
 
-The plugin only gets a limited key: it can list and create monitors and status pages, pause, edit or delete only the monitors and alerts this site created, read results and incidents, send alerts only to places your account already set up (your account email, your Telegram or Bale chat, your Slack), and pause alerts for at most 30 minutes during updates, nothing else. It can't touch monitors or alerts made in the DownTime dashboard or by another site, see your Slack or chat details, change your team, or touch billing. Disconnecting revokes the key.
+The plugin only gets a limited key: it can list and create monitors and status pages, pause, edit or delete only the monitors and alerts this site created, read results and incidents, send alerts only to places your account already set up (your account email, your Telegram or Bale chat, your Slack), and pause alerts for at most 30 minutes during updates, nothing else. It can't touch monitors or alerts made in the DownTime dashboard or by another site, see your Slack or chat details, change your team, or touch billing.
 
 == External services ==
 
@@ -40,8 +38,7 @@ This plugin connects to the DownTime service at https://downtime.opscale.ir:
 * Turning on the page content check makes your server load its own home page once, to make sure the text is there.
 * When WordPress starts installing an update, the plugin asks DownTime to pause this site's alerts for 15 minutes (you can turn this off).
 * The dashboard widget reads this site's latest checks and incidents from the DownTime API (cached for five minutes).
-* If you turn on the WP-Cron watch, WP-Cron sends a heartbeat request to DownTime once an hour. It carries no site data, only the heartbeat monitor's ID in the URL.
-* If you turn on Site Health, WP-Cron sends a second hourly heartbeat. When the Site Health tests (or the WooCommerce checks) find a critical problem, the request also carries the names of those problems (for example "WooCommerce: no payment method is switched on"), so DownTime can show them in the alert. Nothing else about the site is sent.
+* Disconnecting, or deleting the plugin, asks DownTime to delete the monitors this site created and to revoke this site's key.
 * The badge and status page embeds load images and a page from DownTime in your visitors' browsers.
 
 == Frequently Asked Questions ==
@@ -66,23 +63,34 @@ Something that is always on your home page and only there when the page rendered
 
 The "Alert me" switches only show alerts this site created. Alerts you set up in the dashboard keep working and aren't shown here, so leave a switch off if the dashboard already covers that check.
 
-= Why does DownTime say WP-Cron is down when my site is fine? =
+= Why doesn't the plugin watch WP-Cron or Site Health any more? =
 
-WP-Cron only runs when someone visits the site. If the site gets no visits for over 90 minutes, no heartbeat is sent. Run WP-Cron from a real system cron (see "Hooking WP-Cron Into the System Task Scheduler" in the WordPress handbook) or stop watching WP-Cron on the settings page.
+Both were hourly pings sent from WP-Cron, and WP-Cron only runs when someone visits the site (many hosts and caching setups switch it off), so a quiet but healthy site was reported as down. Every check now runs from DownTime, outside your site. Updating to 0.7.0 stops those pings and pauses their monitors on DownTime, keeping their history; delete them from the settings page if you don't need them.
 
-= Why does DownTime offer only WP-Cron in WordPress Playground? =
+= What happens when I disconnect or delete the plugin? =
 
-A Playground site runs in your browser, and its address changes every session, so DownTime can't reach it. Install the plugin on your real site to monitor it.
+Disconnect deletes the monitors this site set up on DownTime, with their history and alerts, moves the "Status" page the plugin published to the trash, and revokes this site's key. Tick "Keep this site's checks running on DownTime" first to keep the monitors. Deleting the plugin does the same clean-up on every site of the network and removes everything the plugin stored in WordPress. Monitors and status pages you made in the DownTime dashboard, and your DownTime account, are never touched.
 
-= Which Site Health results send an alert? =
+= Why does DownTime offer no checks in WordPress Playground? =
 
-Only the ones Site Health marks critical. Recommendations, like a theme that could be removed, never alert. The tests that make network requests from your server (loopback, HTTPS, WordPress.org) aren't run hourly; check them on the Site Health screen.
+A Playground site runs in your browser, and its address changes every session, so DownTime can't reach it. Install the plugin on your real site to monitor it. You can still try the status page block and badges there.
 
 = Does it work on a multisite network? =
 
 Yes. Network-activate it, then connect each site from its own Settings → DownTime page. Network Admin → Settings → DownTime lists which sites are connected.
 
+== Upgrade Notice ==
+
+= 0.7.0 =
+The WP-Cron and Site Health heartbeats are gone (they raised false alarms on quiet sites); their monitors are paused, not deleted. Disconnect and plugin deletion now remove this site's checks from DownTime.
+
 == Changelog ==
+
+= 0.7.0 =
+* Every check now runs from DownTime, outside your site. The WP-Cron and Site Health heartbeats are removed: WP-Cron only runs when the site gets visits, so they reported quiet, healthy sites as down. Updating stops their pings and pauses their monitors on DownTime, history kept.
+* Disconnect now deletes the monitors this site created on DownTime and trashes the plugin's Status page, unless you tick "Keep this site's checks running on DownTime". It asks before disconnecting.
+* Deleting the plugin deletes this site's monitors on DownTime, revokes its key and removes every option, transient and scheduled event it stored, on every site of a network.
+* Nothing is scheduled in WP-Cron any more, except a one-time clean-up right after this update.
 
 = 0.6.0 =
 * Site Health check: the Site Health tests run every hour and critical problems are reported to DownTime, with the problem in the alert.
