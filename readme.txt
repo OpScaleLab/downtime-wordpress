@@ -4,7 +4,7 @@ Tags: uptime, monitoring, status page, ssl, woocommerce
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.7.0
+Stable tag: 0.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,8 +14,8 @@ Monitor your site's uptime with DownTime in one click, and show a live status ba
 
 DownTime checks your site around the clock from outside, the way your visitors reach it, and alerts you (email, Slack, Telegram, Bale, webhooks) the moment it goes down. Nothing runs inside your site between checks: no cron jobs, no background pings, nothing that slows a page down.
 
-* **One-click connect**: sign in or create a free DownTime account and approve this site. No API keys to copy.
-* **One switch per check**: the home page, the login page, the REST API, the XML sitemap, page content (catches a blank or defaced page that still answers "200 OK"), the HTTPS certificate's expiry, the domain registration's expiry, DNS, the server port, ping, and the network path. Or turn on the essentials, or everything, in one click.
+* **One-click connect**: sign in or create a free DownTime account and approve this site. No API keys to copy. The basics, HTTPS, the TLS certificate and DNS, start being checked right away.
+* **One switch per check**: the home page, the login page, the REST API, the XML sitemap, page content (catches a blank or defaced page that still answers "200 OK"), the HTTPS certificate's expiry, the domain registration's expiry, DNS, the server port, ping, and the network path. Turn on everything in one click, or only what you need.
 * **WooCommerce**: checks that the shop, the checkout and the Store API answer.
 * **Network path**: traces the route to your server like mtr and names the hop where packets get lost, so you can tell your host apart from a network problem on the way.
 * **Multisite**: network-activate it, connect each site from its own settings, and see every site's status under Network Admin → Settings → DownTime.
@@ -81,10 +81,17 @@ Yes. Network-activate it, then connect each site from its own Settings → DownT
 
 == Upgrade Notice ==
 
+= 0.7.1 =
+Connecting a site now switches on the basics (HTTPS, TLS certificate, DNS) right away.
+
 = 0.7.0 =
 The WP-Cron and Site Health heartbeats are gone (they raised false alarms on quiet sites); their monitors are paused, not deleted. Disconnect and plugin deletion now remove this site's checks from DownTime.
 
 == Changelog ==
+
+= 0.7.1 =
+* Connect now switches on the basics right away: the site over HTTPS, its TLS certificate and DNS, each with an alert. Checks the account already has are reused.
+* "Turn on the essentials" is now "Turn on the basics (HTTPS, TLS, DNS)". Login page, REST API, page content, domain expiry, ping and the rest stay one switch away, as does "Turn on everything".
 
 = 0.7.0 =
 * Every check now runs from DownTime, outside your site. The WP-Cron and Site Health heartbeats are removed: WP-Cron only runs when the site gets visits, so they reported quiet, healthy sites as down. Updating stops their pings and pauses their monitors on DownTime, history kept.

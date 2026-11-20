@@ -3,7 +3,7 @@
  * Plugin Name:       DownTime Uptime Monitoring
  * Plugin URI:        https://downtime.opscale.ir
  * Description:       Connect your site to DownTime in one click: switch on uptime, page content, HTTPS certificate, domain expiry, DNS, network path and WooCommerce checks, get alerts by email, Telegram, Bale or Slack, and embed a live status badge or status page.
- * Version:           0.7.0
+ * Version:           0.7.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            OpScale Solutions
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DOWNTIME_PLUGIN_VERSION', '0.7.0' );
+define( 'DOWNTIME_PLUGIN_VERSION', '0.7.1' );
 define( 'DOWNTIME_PLUGIN_FILE', __FILE__ );
 define( 'DOWNTIME_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DOWNTIME_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

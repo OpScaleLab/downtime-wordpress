@@ -135,7 +135,14 @@ class Downtime_Admin {
 			self::done( 'error', Downtime_API::error_message( $result ) );
 		}
 		Downtime_API::set_key( $result['body']['api_key'] );
-		self::done( 'success', __( 'Connected to DownTime.', 'downtime-uptime-monitoring' ) );
+		$connected = __( 'Connected to DownTime.', 'downtime-uptime-monitoring' );
+		$basics    = self::is_public_site() ? Downtime_Checks::basics() : array();
+		if ( ! $basics ) {
+			self::done( 'success', $connected );
+		}
+		// Start watching right away: the basics, reusing any the account already has.
+		list( $type, $message ) = Downtime_Checks::turn_on_many( $basics );
+		self::done( $type, $connected . ' ' . $message );
 	}
 
 	/**
