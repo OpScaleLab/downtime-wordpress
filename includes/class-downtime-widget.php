@@ -27,7 +27,7 @@ class Downtime_Widget {
 	private static function site_ids() {
 		$ids = (array) get_option( Downtime_Checks::OPTION_SITE_IDS, array() );
 		if ( ! $ids ) {
-			$ids = array( (string) get_option( Downtime_Admin::OPTION_MONITOR_ID, '' ), Downtime_Heartbeat::monitor_id() );
+			$ids = array( (string) get_option( Downtime_Admin::OPTION_MONITOR_ID, '' ) );
 		}
 		return array_values( array_filter( $ids, array( 'Downtime_Admin', 'is_uuid' ) ) );
 	}

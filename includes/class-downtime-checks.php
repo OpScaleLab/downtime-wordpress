@@ -4,9 +4,10 @@
  *
  * - Monitoring: one switch per WordPress-specific check (homepage, login
  *   page, REST API, sitemap, page content, TLS certificate, domain expiry,
- *   DNS, TCP port, ping, network path, WP-Cron heartbeat, Site Health,
- *   and shop/checkout/Store API when WooCommerce is active), plus "Essentials" and
- *   "Everything" presets. On reuses a monitor the account already has,
+ *   DNS, TCP port, ping, network path, and shop/checkout/Store API when
+ *   WooCommerce is active), plus "Essentials" and "Everything" presets.
+ *   Every check runs from DownTime, outside the site: nothing depends on
+ *   WP-Cron or on the site getting visits. On reuses a monitor the account already has,
  *   wherever it came from, and resumes it if paused; it creates one only
  *   when none exists. Off pauses the monitor, so its history survives;
  *   Remove deletes it. DownTime only lets this site's key change monitors
@@ -97,9 +98,7 @@ class Downtime_Checks {
 	 * alert unless the admin turns it on). `essentials` puts it in the
 	 * Essentials preset. `marker` tells monitors apart that probe the same
 	 * target: a content check carries a [BODY] condition, a domain check a
-	 * domain expiry threshold. `beat` marks a heartbeat this site pings
-	 * (see Downtime_Heartbeat::BEATS). Only the heartbeats are offered on a site
-	 * DownTime can't reach.
+	 * domain expiry threshold. A site DownTime can't reach gets none.
 	 */
 	public static function checks() {
 		$name   = self::site_name();
@@ -274,32 +273,6 @@ class Downtime_Checks {
 			);
 			$checks = array_merge( $checks, self::woocommerce_checks( $type, $name ) );
 		}
-		$checks['heartbeat'] = array(
-			'label'      => __( 'WP-Cron', 'downtime-uptime-monitoring' ),
-			'help'       => __( 'Scheduled posts, backups and updates keep running. This site pings DownTime every hour, and DownTime flags it if pings stop for 90 minutes. WP-Cron only runs when the site gets visits, so on a very quiet site, run it from a real system cron.', 'downtime-uptime-monitoring' ),
-			'essentials' => true,
-			'alert'      => 1,
-			'beat'       => 'heartbeat',
-			'monitor'    => array(
-				'name'     => $name . ' WP-Cron',
-				'type'     => 'heartbeat',
-				'interval' => Downtime_Heartbeat::INTERVAL,
-			),
-		);
-		$checks['health']    = array(
-			'label'      => class_exists( 'WooCommerce' ) ? __( 'Site Health and WooCommerce', 'downtime-uptime-monitoring' ) : __( 'Site Health', 'downtime-uptime-monitoring' ),
-			'help'       => class_exists( 'WooCommerce' )
-				? __( 'Every hour this site runs the Tools → Site Health tests and checks WooCommerce (a payment method is on, the checkout page exists, scheduled actions aren\'t piling up), and reports critical problems to DownTime.', 'downtime-uptime-monitoring' )
-				: __( 'Every hour this site runs the Tools → Site Health tests and reports critical problems to DownTime, e.g. an unsupported PHP version or a broken database. Recommendations never alert.', 'downtime-uptime-monitoring' ),
-			'essentials' => true,
-			'alert'      => 1,
-			'beat'       => 'health',
-			'monitor'    => array(
-				'name'     => $name . ' Site Health',
-				'type'     => 'heartbeat',
-				'interval' => Downtime_Heartbeat::INTERVAL,
-			),
-		);
 		return $checks;
 	}
 
@@ -399,38 +372,10 @@ class Downtime_Checks {
 	 * (this site, an earlier install of it, or the dashboard). HTTP and
 	 * HTTPS count as the same kind. Content and domain-expiry checks only
 	 * match monitors with their marker, and the plain checks never take
-	 * one. A heartbeat has no target, so it is the one this site pings,
-	 * else one this site created, else one with this site's heartbeat name
-	 * (e.g. from an earlier install or preview). $taken skips monitors
-	 * another check already claimed.
+	 * one. $taken skips monitors another check already claimed.
 	 */
 	public static function find_existing( $check, $monitors, $taken = array() ) {
 		$want = $check['monitor'];
-		if ( 'heartbeat' === $want['type'] ) {
-			$beat    = $check['beat'] ?? 'heartbeat';
-			$by_name = null;
-			$by_site = null;
-			foreach ( $monitors as $m ) {
-				if ( empty( $m['id'] ) || 'heartbeat' !== ( $m['type'] ?? '' ) || isset( $taken[ $m['id'] ] ) ) {
-					continue;
-				}
-				$owner = Downtime_Heartbeat::beat_of( $m['id'] );
-				if ( $beat === $owner ) {
-					return $m;
-				}
-				if ( '' !== $owner ) {
-					continue; // another beat's monitor
-				}
-				if ( ! $by_name && $want['name'] === ( $m['name'] ?? '' ) ) {
-					$by_name = $m;
-				}
-				// Before 0.6.0 the WP-Cron beat was this site's only heartbeat.
-				if ( ! $by_site && 'heartbeat' === $beat && self::site() === ( $m['integrationSite'] ?? '' ) && ! self::is_beat_name( $m ) ) {
-					$by_site = $m;
-				}
-			}
-			return $by_name ? $by_name : $by_site;
-		}
 		$web    = array( 'http', 'https' );
 		$marker = $check['marker'] ?? '';
 		$target = self::target( $want['type'], $want['url'], $want['port'] ?? 0 );
@@ -451,11 +396,6 @@ class Downtime_Checks {
 			return $m;
 		}
 		return null;
-	}
-
-	/** A heartbeat named like one of this site's other beats (Site Health). */
-	private static function is_beat_name( $m ) {
-		return self::site_name() . ' Site Health' === ( $m['name'] ?? '' );
 	}
 
 	/**
@@ -513,14 +453,10 @@ class Downtime_Checks {
 	/**
 	 * Remember a check's monitor locally once it exists, whether this site
 	 * just created it or found it on the account: the homepage monitor is
-	 * the status page default, and the heartbeat is what WP-Cron pings.
+	 * the status page default.
 	 */
 	private static function adopt( $key, $check, $monitor_id ) {
-		if ( ! empty( $check['beat'] ) ) {
-			if ( Downtime_Heartbeat::monitor_id( $check['beat'] ) !== $monitor_id ) {
-				Downtime_Heartbeat::enable( $monitor_id, $check['beat'] );
-			}
-		} elseif ( ! empty( $check['option'] ) && get_option( $check['option'] ) !== $monitor_id ) {
+		if ( ! empty( $check['option'] ) && get_option( $check['option'] ) !== $monitor_id ) {
 			update_option( $check['option'], $monitor_id, false );
 		}
 	}
@@ -532,7 +468,7 @@ class Downtime_Checks {
 
 	/**
 	 * The account's monitors that belong to this site: created by this
-	 * site's key, pointing at this site, or the WP-Cron heartbeat.
+	 * site's key, or pointing at this site.
 	 */
 	public static function site_monitors( $monitors ) {
 		$host = self::host();
@@ -542,7 +478,7 @@ class Downtime_Checks {
 				continue;
 			}
 			$points = '' !== $host && self::target( 'dns', $m['url'] ?? '', 0 ) === $host;
-			if ( self::owns( $m ) || $points || '' !== Downtime_Heartbeat::beat_of( $m['id'] ) ) {
+			if ( self::owns( $m ) || $points ) {
 				$out[] = $m;
 			}
 		}
@@ -757,10 +693,6 @@ class Downtime_Checks {
 			Downtime_Admin::done( 'success', __( 'That check is already off.', 'downtime-uptime-monitoring' ) );
 		}
 		if ( ! self::owns( $m ) ) {
-			if ( ! empty( $checks[ $key ]['beat'] ) ) {
-				Downtime_Heartbeat::disable( $checks[ $key ]['beat'] );
-				Downtime_Admin::done( 'warning', __( 'Stopped sending heartbeats for this check. The heartbeat monitor was set up outside this site, so pause or delete it in the DownTime dashboard, or it will report the check as down.', 'downtime-uptime-monitoring' ) );
-			}
 			Downtime_Admin::done( 'error', __( 'DownTime only lets this site change monitors it created. Pause this one in the DownTime dashboard.', 'downtime-uptime-monitoring' ) );
 		}
 		$result = self::update_active( $m, false );
@@ -768,10 +700,6 @@ class Downtime_Checks {
 			Downtime_Admin::done( 'error', self::change_error( $result ) );
 		}
 		self::remember_paused( $key, (string) $m['id'] );
-		if ( ! empty( $checks[ $key ]['beat'] ) ) {
-			// A paused heartbeat doesn't need pings.
-			Downtime_Heartbeat::disable( $checks[ $key ]['beat'] );
-		}
 		/* translators: %s: check name */
 		Downtime_Admin::done( 'success', sprintf( __( '%s is off. Its monitor is paused on DownTime and keeps its history; turn it back on any time.', 'downtime-uptime-monitoring' ), $checks[ $key ]['label'] ) );
 	}
@@ -806,7 +734,7 @@ class Downtime_Checks {
 	 * DownTime's monitor update replaces the whole definition, so resend
 	 * the monitor as listed with only `active` changed.
 	 */
-	private static function update_active( $m, $active ) {
+	public static function update_active( $m, $active ) {
 		$map  = array(
 			'name'                      => 'name',
 			'url'                       => 'url',
@@ -866,13 +794,6 @@ class Downtime_Checks {
 		if ( get_option( Downtime_Admin::OPTION_MONITOR_ID ) === $id ) {
 			delete_option( Downtime_Admin::OPTION_MONITOR_ID );
 			delete_option( Downtime_Admin::OPTION_ALERT_ID );
-		}
-		$beat = Downtime_Heartbeat::beat_of( $id );
-		if ( '' !== $beat ) {
-			Downtime_Heartbeat::disable( $beat );
-			if ( 'heartbeat' === $beat ) {
-				delete_option( Downtime_Admin::OPTION_HB_ALERT );
-			}
 		}
 		Downtime_Admin::done( 'success', __( 'Monitor deleted, along with its history and alerts.', 'downtime-uptime-monitoring' ) );
 	}
@@ -960,7 +881,7 @@ class Downtime_Checks {
 	public static function render_panel( $monitors ) {
 		self::remember_site_ids( $monitors );
 		if ( self::is_preview_site() ) {
-			echo '<div class="notice notice-info inline"><p>' . esc_html__( 'This is a temporary WordPress Playground site: it runs in your browser and its address changes every session, so DownTime can\'t check it. Install the plugin on your real site to monitor it. You can still try the WP-Cron heartbeat and the status page here.', 'downtime-uptime-monitoring' ) . '</p></div>';
+			echo '<div class="notice notice-info inline"><p>' . esc_html__( 'This is a temporary WordPress Playground site: it runs in your browser and its address changes every session, so DownTime can\'t check it. Install the plugin on your real site to monitor it. You can still pick an existing status page and try the badge and block here.', 'downtime-uptime-monitoring' ) . '</p></div>';
 		} elseif ( ! Downtime_Admin::is_public_site() ) {
 			/* translators: %s: site URL */
 			echo '<p>' . esc_html( sprintf( __( '%s is a local or private address, so DownTime cannot reach it. Site checks become available once the site is on a public address.', 'downtime-uptime-monitoring' ), untrailingslashit( home_url( '/' ) ) ) ) . '</p>';
@@ -968,6 +889,10 @@ class Downtime_Checks {
 
 		$checks   = self::checks();
 		$assigned = self::assign( $checks, $monitors );
+		if ( ! $checks ) {
+			self::render_others( $monitors, $assigned );
+			return;
+		}
 		$latest   = Downtime_Widget::latest_by_monitor();
 		$alerts   = Downtime_Alerts::available();
 
@@ -990,25 +915,11 @@ class Downtime_Checks {
 			$m     = $assigned[ $key ];
 			$owned = $m && self::owns( $m );
 			$on    = $m && ! empty( $m['active'] );
-			// A heartbeat found only by name isn't pinged until switched on here.
-			if ( $m && ! empty( $check['beat'] ) && Downtime_Heartbeat::monitor_id( $check['beat'] ) !== $m['id'] ) {
-				$on = false;
-			}
 			$state = self::state( $m, $m ? ( $latest[ $m['id'] ] ?? null ) : null );
 			$label = $check['label'];
 			$check_field = '<input type="hidden" name="check" value="' . esc_attr( $key ) . '">';
 
 			echo '<tr><td><strong>' . esc_html( $label ) . '</strong><br><span class="description">' . esc_html( $check['help'] ) . '</span>';
-			if ( 'health' === $key && $on ) {
-				$last = Downtime_Health::last();
-				if ( $last && ! empty( $last['problems'] ) ) {
-					/* translators: %s: list of problems */
-					echo '<br><span class="description downtime-health-problems">' . esc_html( sprintf( __( 'Last check found: %s', 'downtime-uptime-monitoring' ), implode( '; ', $last['problems'] ) ) ) . '</span>';
-				} elseif ( $last ) {
-					/* translators: %s: time ago, e.g. "5 mins" */
-					echo '<br><span class="description">' . esc_html( sprintf( __( 'Last check %s ago: no critical problems.', 'downtime-uptime-monitoring' ), human_time_diff( (int) $last['time'] ) ) ) . '</span>';
-				}
-			}
 			if ( $m && ! $owned ) {
 				/* translators: %s: monitor name */
 				echo '<br><span class="description">' . esc_html( sprintf( __( 'Uses "%s", set up outside this site.', 'downtime-uptime-monitoring' ), (string) ( $m['name'] ?? '' ) ) ) . '</span>';
@@ -1017,7 +928,7 @@ class Downtime_Checks {
 
 			echo '<td><span class="downtime-dot is-' . esc_attr( $state[0] ) . '" aria-hidden="true"></span> ' . esc_html( $state[1] ) . '</td><td>';
 			if ( $on ) {
-				if ( $owned || ! empty( $check['beat'] ) ) {
+				if ( $owned ) {
 					/* translators: %s: check name */
 					self::toggle( 'downtime_check_off', true, sprintf( __( 'Turn off %s', 'downtime-uptime-monitoring' ), $label ), $check_field );
 				} else {
@@ -1085,7 +996,7 @@ class Downtime_Checks {
 			$type = (string) ( $m['type'] ?? '' );
 			$url  = (string) ( $m['url'] ?? '' );
 			if ( 'heartbeat' === $type ) {
-				$what = 'health' === Downtime_Heartbeat::beat_of( $m['id'] ) ? __( 'Site Health heartbeat', 'downtime-uptime-monitoring' ) : __( 'WP-Cron heartbeat', 'downtime-uptime-monitoring' );
+				$what = __( 'Heartbeat', 'downtime-uptime-monitoring' );
 			} elseif ( 'tcp' === $type && ! empty( $m['port'] ) ) {
 				$what = 'TCP ' . $url . ':' . (int) $m['port'];
 			} else {

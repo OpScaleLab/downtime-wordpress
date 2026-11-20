@@ -10,9 +10,12 @@ Tracking: OpScaleLab/downtime#363 (epic OpScaleLab/downtime#364).
 |---|---|
 | `downtime.php` | Plugin header and bootstrap. `DOWNTIME_BASE_URL` can be overridden in `wp-config.php` |
 | `includes/class-downtime-api.php` | Server-side API client. The key lives in the `downtime_api_key` option (autoload off) and never reaches a browser |
-| `includes/class-downtime-admin.php` | Settings → DownTime: Connect/Disconnect, "Monitor this site", status page creation |
+| `includes/class-downtime-admin.php` | Settings → DownTime: Connect/Disconnect, status page creation |
+| `includes/class-downtime-checks.php` | The per-check switches (all probed from DownTime, outside the site), reuse of existing monitors, pause/resume/delete |
+| `includes/class-downtime-alerts.php` | "Alert me" switches, alert channels, quiet updates |
+| `includes/class-downtime-cleanup.php` | Disconnect/uninstall clean-up (deletes this site's own monitors, revokes the key, removes every option) and the 0.7.0 upgrade that retires the old WP-Cron/Site Health heartbeats |
+| `includes/class-downtime-network.php` | Multisite: Network Admin → Settings → DownTime overview |
 | `includes/class-downtime-widget.php` | wp-admin dashboard widget: state, latest check, recent uptime and incidents, cached 5 minutes in the `downtime_widget_cache` transient |
-| `includes/class-downtime-heartbeat.php` | Optional WP-Cron watch: an hourly `downtime_heartbeat_ping` event pings a heartbeat monitor (no key needed) |
 | `includes/class-downtime-embed.php` | `[downtime_badge]`, `[downtime_status]`, and the dynamic `downtime/status` block's render |
 | `blocks/status/` | Block metadata and editor UI (plain `wp.*` globals, no build step) |
 | `assets/embed.js` | Auto-resizes status iframes from the page's `downtime:status:resize` postMessage (DownTime origin only) |
@@ -30,7 +33,7 @@ Tracking: OpScaleLab/downtime#363 (epic OpScaleLab/downtime#364).
 | Latest checks | `GET /api/results?monitor_id=` (last 100) | downtime#361 |
 | Incidents | `GET /api/incidents` | downtime#384 |
 | Email alerts | `POST /api/rules` (email-only; DownTime refuses anything else from an integration key) | downtime#384 |
-| WP-Cron heartbeat | `POST /api/heartbeat/{monitor_id}`, no key | public |
+| Delete own monitors (Disconnect, uninstall) | `DELETE /api/monitors/{id}` (only monitors this key created) | chart 0.31.0 |
 | Status pages | `GET`/`POST /api/status-pages` | downtime#361 |
 | Badges / embed | `GET /api/status/{slug}/badge.svg`, `uptime.svg`, `/status/{slug}?embed=1` | public (embed: downtime#360) |
 

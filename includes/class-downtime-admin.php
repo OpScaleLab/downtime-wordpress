@@ -21,7 +21,6 @@ class Downtime_Admin {
 	const PAGE              = 'downtime';
 	const OPTION_MONITOR_ID = 'downtime_site_monitor_id';
 	const OPTION_ALERT_ID   = 'downtime_site_alert_rule_id';
-	const OPTION_HB_ALERT   = 'downtime_heartbeat_alert_rule_id';
 	const STATE_TRANSIENT   = 'downtime_connect_state_';
 
 	public static function init() {
@@ -32,8 +31,6 @@ class Downtime_Admin {
 		add_action( 'admin_post_downtime_status_page', array( __CLASS__, 'handle_status_page' ) );
 		add_action( 'admin_post_downtime_use_status_page', array( __CLASS__, 'handle_use_status_page' ) );
 		add_action( 'admin_post_downtime_email_alerts', array( __CLASS__, 'handle_email_alerts' ) );
-		add_action( 'admin_post_downtime_heartbeat_on', array( __CLASS__, 'handle_heartbeat_on' ) );
-		add_action( 'admin_post_downtime_heartbeat_off', array( __CLASS__, 'handle_heartbeat_off' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( DOWNTIME_PLUGIN_FILE ), array( __CLASS__, 'action_links' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 	}
@@ -141,25 +138,52 @@ class Downtime_Admin {
 		self::done( 'success', __( 'Connected to DownTime.', 'downtime-uptime-monitoring' ) );
 	}
 
+	/**
+	 * Disconnect: by default also delete the monitors this site created on
+	 * DownTime and trash the Status page it published, so nothing keeps
+	 * checking (or alerting about) a site that left. Then revoke the key,
+	 * best effort, and always forget everything here, so a DownTime outage
+	 * can't trap the site in a connected state.
+	 */
 	public static function handle_disconnect() {
 		self::require_admin();
 		check_admin_referer( 'downtime_disconnect' );
-		// Best effort: revoke the key on DownTime, but always forget it here
-		// so a DownTime outage can't trap the site in a connected state.
-		$result = Downtime_API::revoke_self();
-		Downtime_API::clear_key();
-		delete_option( self::OPTION_MONITOR_ID );
-		delete_option( self::OPTION_ALERT_ID );
-		delete_option( self::OPTION_HB_ALERT );
-		delete_option( Downtime_Checks::OPTION_TLS_ALERT );
-		delete_option( Downtime_Checks::OPTION_SITE_IDS );
-		delete_option( Downtime_Checks::OPTION_PAUSED );
-		delete_transient( Downtime_Alerts::PAIRING . get_current_user_id() );
-		Downtime_Heartbeat::disable();
-		if ( ! Downtime_API::ok( $result ) ) {
-			self::done( 'warning', __( 'Disconnected here, but DownTime could not revoke the key. Revoke it under Settings → Integrations on DownTime.', 'downtime-uptime-monitoring' ) );
+		$keep    = ! empty( $_POST['keep_monitors'] );
+		$deleted = 0;
+		$failed  = false;
+		if ( ! $keep ) {
+			$deleted = Downtime_Cleanup::delete_site_monitors();
+			if ( is_wp_error( $deleted ) ) {
+				$failed  = true;
+				$deleted = 0;
+			}
+			Downtime_Cleanup::trash_wp_page();
 		}
-		self::done( 'success', __( 'Disconnected from DownTime.', 'downtime-uptime-monitoring' ) );
+		$result = Downtime_API::revoke_self();
+		$slug   = Downtime_Embed::default_slug();
+		$user   = get_current_user_id();
+		Downtime_Cleanup::forget_site();
+		delete_transient( Downtime_Alerts::PAIRING . $user );
+		if ( $keep && '' !== $slug ) {
+			// Kept monitors keep their status page; the badge and block go on showing it.
+			update_option( Downtime_Embed::OPTION_SLUG, $slug, false );
+		}
+
+		$parts = array( __( 'Disconnected from DownTime.', 'downtime-uptime-monitoring' ) );
+		if ( $failed ) {
+			$parts[] = __( 'DownTime could not be reached, so this site\'s checks are still there: delete them in the DownTime dashboard.', 'downtime-uptime-monitoring' );
+		} elseif ( $deleted ) {
+			/* translators: %d: number of monitors */
+			$parts[] = sprintf( _n( 'Deleted %d check this site had set up.', 'Deleted %d checks this site had set up.', $deleted, 'downtime-uptime-monitoring' ), $deleted );
+		}
+		if ( ! $keep && '' !== $slug ) {
+			/* translators: %s: status page slug */
+			$parts[] = sprintf( __( 'The status page "%s" stays on your DownTime account; delete it in the dashboard if you no longer need it.', 'downtime-uptime-monitoring' ), $slug );
+		}
+		if ( ! Downtime_API::ok( $result ) ) {
+			$parts[] = __( 'DownTime could not revoke this site\'s key; revoke it under Settings → Integrations on DownTime.', 'downtime-uptime-monitoring' );
+		}
+		self::done( $failed || ! Downtime_API::ok( $result ) ? 'warning' : 'success', implode( ' ', $parts ) );
 	}
 
 	// --- Monitor this site --------------------------------------------------
@@ -182,23 +206,6 @@ class Downtime_Admin {
 		self::done( 'success', __( 'Alerts are on for this check.', 'downtime-uptime-monitoring' ) );
 	}
 
-	// --- WP-Cron heartbeat ----------------------------------------------------
-
-	/** Reuses the heartbeat this site (or an earlier install of it) already has. */
-	public static function handle_heartbeat_on() {
-		self::require_admin();
-		check_admin_referer( 'downtime_heartbeat_on' );
-		Downtime_Checks::add_checks( array( 'heartbeat' ) );
-	}
-
-	public static function handle_heartbeat_off() {
-		self::require_admin();
-		check_admin_referer( 'downtime_heartbeat_off' );
-		Downtime_Heartbeat::disable();
-		delete_option( self::OPTION_HB_ALERT );
-		self::done( 'success', __( 'Stopped sending WP-Cron heartbeats. Pause or delete the heartbeat monitor in the DownTime dashboard, or it will report WP-Cron as down.', 'downtime-uptime-monitoring' ) );
-	}
-
 	// --- Status page ----------------------------------------------------------
 
 	public static function handle_status_page() {
@@ -215,12 +222,8 @@ class Downtime_Admin {
 		$picked = isset( $_POST['monitor_ids'] ) ? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['monitor_ids'] ) ) : array();
 		$picked = array_values( array_filter( $picked, array( __CLASS__, 'is_uuid' ) ) );
 		if ( ! $picked ) {
-			// Default to the site monitor, or the WP-Cron heartbeat when the
-			// site has no public address (e.g. WordPress Playground).
+			// Default to the homepage check.
 			$monitor_id = (string) get_option( self::OPTION_MONITOR_ID, '' );
-			if ( '' === $monitor_id ) {
-				$monitor_id = Downtime_Heartbeat::monitor_id();
-			}
 			if ( '' !== $monitor_id ) {
 				$picked = array( $monitor_id );
 			}
@@ -335,6 +338,7 @@ class Downtime_Admin {
 		}
 		echo '<div class="wrap"><h1>' . esc_html__( 'DownTime Uptime Monitoring', 'downtime-uptime-monitoring' ) . '</h1>';
 		self::notice();
+		Downtime_Cleanup::render_notice();
 
 		if ( ! Downtime_API::is_connected() ) {
 			echo '<p>' . esc_html__( 'Connect this site to DownTime to monitor its uptime and show a live status badge or status page. You will sign in (or create a free account) on DownTime and approve access for this site.', 'downtime-uptime-monitoring' ) . '</p>';
@@ -354,19 +358,15 @@ class Downtime_Admin {
 		} else {
 			echo '<p>' . esc_html( Downtime_API::error_message( $user ) ) . '</p>';
 		}
-		self::form( 'downtime_disconnect', __( 'Disconnect', 'downtime-uptime-monitoring' ), 'button' );
+		$confirm = esc_js( __( 'Disconnect this site from DownTime?', 'downtime-uptime-monitoring' ) );
+		$keep    = '<label class="downtime-keep"><input type="checkbox" name="keep_monitors" value="1"> ' . esc_html__( 'Keep this site\'s checks running on DownTime', 'downtime-uptime-monitoring' ) . '</label> ';
+		self::form( 'downtime_disconnect', __( 'Disconnect', 'downtime-uptime-monitoring' ), 'button', $keep, 'return confirm(\'' . $confirm . '\')' );
+		echo '<p class="description">' . esc_html__( 'Disconnecting deletes the checks this site set up on DownTime, with their history, unless you keep them. Checks you added in the DownTime dashboard are never touched. Deleting the plugin does the same clean-up.', 'downtime-uptime-monitoring' ) . '</p>';
 
 		// Monitoring.
 		echo '<h2>' . esc_html__( 'Monitoring', 'downtime-uptime-monitoring' ) . '</h2>';
 		$monitors = self::list_monitors();
 		Downtime_Checks::render_panel( $monitors );
-		if ( '' !== Downtime_Heartbeat::monitor_id() ) {
-			$next = wp_next_scheduled( Downtime_Heartbeat::HOOK );
-			if ( $next ) {
-				/* translators: %s: human-readable time until the next ping */
-				echo '<p class="description">' . esc_html( sprintf( __( 'Next WP-Cron ping in %s.', 'downtime-uptime-monitoring' ), human_time_diff( time(), $next ) ) ) . '</p>';
-			}
-		}
 		echo '<p><a href="' . esc_url( Downtime_API::dashboard_url() ) . '" target="_blank" rel="noopener">' . esc_html__( 'Open DownTime dashboard', 'downtime-uptime-monitoring' ) . '</a></p>';
 
 		Downtime_Alerts::render();
