@@ -95,8 +95,9 @@ class Downtime_Checks {
 	 * Every check the plugin offers, keyed by a stable ID, in display order.
 	 * `monitor` is the full definition sent to DownTime. `alert` is the
 	 * failure threshold for the alert rule turned on with the check (0 = no
-	 * alert unless the admin turns it on). `essentials` puts it in the
-	 * Essentials preset. `marker` tells monitors apart that probe the same
+	 * alert unless the admin turns it on). `essentials` marks the basics
+	 * (HTTPS homepage, TLS certificate, DNS): switched on at Connect and by
+	 * the "basics" button. `marker` tells monitors apart that probe the same
 	 * target: a content check carries a [BODY] condition, a domain check a
 	 * domain expiry threshold. A site DownTime can't reach gets none.
 	 */
@@ -125,7 +126,7 @@ class Downtime_Checks {
 			$checks['login'] = array(
 				'label'      => __( 'Login page', 'downtime-uptime-monitoring' ),
 				'help'       => __( 'wp-login.php answers, so you and your users can sign in.', 'downtime-uptime-monitoring' ),
-				'essentials' => true,
+				'essentials' => false,
 				'alert'      => 0,
 				'monitor'    => array(
 					/* translators: %s: site name */
@@ -139,7 +140,7 @@ class Downtime_Checks {
 			$checks['rest']  = array(
 				'label'      => __( 'REST API', 'downtime-uptime-monitoring' ),
 				'help'       => __( '/wp-json/ answers. The block editor, many plugins and mobile apps depend on it.', 'downtime-uptime-monitoring' ),
-				'essentials' => true,
+				'essentials' => false,
 				'alert'      => 0,
 				'monitor'    => array(
 					/* translators: %s: site name */
@@ -170,7 +171,7 @@ class Downtime_Checks {
 			$checks['content'] = array(
 				'label'      => __( 'Page content', 'downtime-uptime-monitoring' ),
 				'help'       => __( 'The homepage still shows this text. Catches a blank page, a broken theme or a defaced site that still answers "200 OK".', 'downtime-uptime-monitoring' ),
-				'essentials' => '' !== $text,
+				'essentials' => false,
 				'alert'      => 2,
 				'marker'     => 'content',
 				'needs_text' => true,
@@ -203,7 +204,7 @@ class Downtime_Checks {
 			$checks['domain'] = array(
 				'label'      => __( 'Domain expiry', 'downtime-uptime-monitoring' ),
 				'help'       => __( 'Warns you 30 days before the domain registration runs out.', 'downtime-uptime-monitoring' ),
-				'essentials' => true,
+				'essentials' => false,
 				'alert'      => 1,
 				'marker'     => 'domain',
 				'monitor'    => array(
@@ -220,7 +221,7 @@ class Downtime_Checks {
 				'label'      => __( 'DNS', 'downtime-uptime-monitoring' ),
 				'help'       => __( 'The domain name still resolves, e.g. after a registrar or DNS host change.', 'downtime-uptime-monitoring' ),
 				'essentials' => true,
-				'alert'      => 0,
+				'alert'      => 2,
 				'monitor'    => array(
 					/* translators: %s: site name */
 					'name'     => sprintf( __( '%s: DNS', 'downtime-uptime-monitoring' ), $name ),
@@ -291,7 +292,7 @@ class Downtime_Checks {
 			$out['wc_shop'] = array(
 				'label'      => __( 'WooCommerce shop', 'downtime-uptime-monitoring' ),
 				'help'       => __( 'The shop page loads.', 'downtime-uptime-monitoring' ),
-				'essentials' => true,
+				'essentials' => false,
 				'alert'      => 2,
 				'monitor'    => array(
 					/* translators: %s: site name */
@@ -308,7 +309,7 @@ class Downtime_Checks {
 			$out['wc_checkout'] = array(
 				'label'      => __( 'WooCommerce checkout', 'downtime-uptime-monitoring' ),
 				'help'       => __( 'The checkout page answers without an error, so customers can pay.', 'downtime-uptime-monitoring' ),
-				'essentials' => true,
+				'essentials' => false,
 				'alert'      => 2,
 				'monitor'    => array(
 					/* translators: %s: site name */
@@ -566,8 +567,22 @@ class Downtime_Checks {
 		return 'added';
 	}
 
+	/** The basics: what Connect switches on, and the "Turn on the basics" button. */
+	public static function basics() {
+		return array_keys( wp_list_filter( self::checks(), array( 'essentials' => true ) ) );
+	}
+
 	/** Turn checks on in order, then redirect with one summary notice. */
 	public static function add_checks( $picked ) {
+		list( $type, $message ) = self::turn_on_many( $picked );
+		Downtime_Admin::done( $type, $message );
+	}
+
+	/**
+	 * Turn checks on in order. Returns array( notice type, message ) without
+	 * redirecting, so Connect can report it in its own notice.
+	 */
+	public static function turn_on_many( $picked ) {
 		$checks   = self::checks();
 		$assigned = self::assign( $checks, Downtime_Admin::list_monitors() );
 		$done     = array(
@@ -611,9 +626,9 @@ class Downtime_Checks {
 		}
 		$parts = array_merge( $parts, $errors );
 		if ( ! $parts ) {
-			Downtime_Admin::done( 'warning', __( 'Nothing to turn on.', 'downtime-uptime-monitoring' ) );
+			return array( 'warning', __( 'Nothing to turn on.', 'downtime-uptime-monitoring' ) );
 		}
-		Downtime_Admin::done( $errors ? ( count( $errors ) === count( $parts ) ? 'error' : 'warning' ) : 'success', implode( ' ', $parts ) );
+		return array( $errors ? ( count( $errors ) === count( $parts ) ? 'error' : 'warning' ) : 'success', implode( ' ', $parts ) );
 	}
 
 	public static function handle_check_on() {
@@ -899,7 +914,7 @@ class Downtime_Checks {
 		echo '<p>' . esc_html__( 'Switch on what DownTime should watch. Checks your account already has are reused, never added twice. Off pauses a check and keeps its history.', 'downtime-uptime-monitoring' ) . '</p>';
 		if ( count( $checks ) > 1 ) {
 			echo '<p>';
-			Downtime_Admin::form( 'downtime_preset', __( 'Turn on the essentials', 'downtime-uptime-monitoring' ), 'button button-primary', '<input type="hidden" name="preset" value="essentials">' );
+			Downtime_Admin::form( 'downtime_preset', __( 'Turn on the basics (HTTPS, TLS, DNS)', 'downtime-uptime-monitoring' ), 'button button-primary', '<input type="hidden" name="preset" value="essentials">' );
 			Downtime_Admin::form( 'downtime_preset', __( 'Turn on everything', 'downtime-uptime-monitoring' ), 'button', '<input type="hidden" name="preset" value="all">' );
 			echo '</p>';
 		}

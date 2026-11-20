@@ -14,7 +14,7 @@ if ( ! defined( 'DOWNTIME_BASE_URL' ) ) {
 	define( 'DOWNTIME_BASE_URL', 'https://downtime.opscale.ir' );
 }
 if ( ! defined( 'DOWNTIME_PLUGIN_VERSION' ) ) {
-	define( 'DOWNTIME_PLUGIN_VERSION', '0.7.0' );
+	define( 'DOWNTIME_PLUGIN_VERSION', '0.7.1' );
 }
 require_once __DIR__ . '/includes/class-downtime-api.php';
 require_once __DIR__ . '/includes/class-downtime-admin.php';
